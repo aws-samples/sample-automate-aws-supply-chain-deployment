@@ -1,0 +1,243 @@
+# Software (software, scripts or sample code) is licensed under the Apache License, Version 2.0.
+# Author: AWS Professional Services
+
+name: Destroy workflow
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+  pull-requests: write
+  checks: write
+  issues: write
+  actions: read
+
+env:
+  PROJECT_NAME: "asc-deployment"
+  REGION: "us-east-1"
+  REPO_NAME: "<Current ASC Datasets Repo name>"    #To be filled.
+  JFROG_PROJECT_KEY: "<JFrog Project Key name>"    #To be filled.
+  JFROG_ARTIFACTS_REPO: "<JFrog Artifacts repo name>"    #To be filled.
+  ENVIRONMENT: ${{ github.ref_name == 'main' && 'prod' || github.ref_name }}
+  LAMBDA_LAYER_TEMP_DIR_TERRAFORM: "layerOutput"
+  LAMBDA_FUNCTION_TEMP_DIR_TERRAFORM: "lambdaOutput"
+  ACCOUNT_ID: ${{ 
+    github.ref_name == 'main' && secrets.ACCOUNT_ID_PROD ||
+    github.ref_name == 'dev' && secrets.ACCOUNT_ID_DEV }}
+  AWS_ROLE: ${{ 
+    github.ref_name == 'main' && secrets.AWS_ROLE_PROD ||
+    github.ref_name == 'dev' && secrets.AWS_ROLE_DEV }}
+  AWS_USER_ROLE: ${{ 
+    github.ref_name == 'main' && secrets.AWS_USER_ROLE_PROD ||
+    github.ref_name == 'dev' && secrets.AWS_USER_ROLE_DEV }}
+
+jobs:
+  validate-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check source branch
+        if: ${{ !contains(fromJson('["main", "dev"]'), github.ref_name) }}
+        run: |
+          echo "Error: Workflow can only run on dev, or main branches."
+          exit 1
+  
+  terraform-check-destroy:
+    needs: [ validate-branch ]
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref_name == 'main' && 'prod' || github.ref_name }}
+    outputs:
+      should_destroy: ${{ steps.set_output.outputs.should_destroy }}
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ github.workspace }}/terraform-deployment
+    permissions:
+      contents: read
+      id-token: write
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          audience: sts.amazonaws.com
+          aws-region: ${{ env.REGION }}
+          role-to-assume: ${{ env.AWS_ROLE }}
+    
+      - name: Check if S3 Bucket for Terraform exist
+        id: check_resources
+        run: |
+          chmod +x ../scripts/terraform-setup-status.sh
+          ../scripts/terraform-setup-status.sh
+      
+      - name: Set output
+        id: set_output
+        run: echo "should_destroy=${{ steps.check_resources.exitCode == 0 }}" >> $GITHUB_OUTPUT
+
+  terraform-plan-destroy:
+    needs: [ terraform-check-destroy ]
+    if: needs.terraform-check-destroy.outputs.should_destroy == 'true'
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref_name == 'main' && 'prod' || github.ref_name }}
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ github.workspace }}/terraform-deployment
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          audience: sts.amazonaws.com
+          aws-region: ${{ env.REGION }}
+          role-to-assume: ${{ env.AWS_ROLE }}
+      
+      - name: Setup Terraform latest version
+        uses: hashicorp/setup-terraform@v3
+      
+      - name: JFrog Login
+        uses: jfrog/setup-jfrog-cli@v4
+        env: 
+            JF_URL: ${{ secrets.ARTIFACTORY_HOST }}
+            JF_USER: ${{ secrets.ARTIFACTORY_USERNAME }}
+            JF_ACCESS_TOKEN: ${{ secrets.ARTIFACTORY_ACCESS_TOKEN }}
+            JF_PROJECT: ${{ env.JFROG_PROJECT_KEY }}
+
+      - name: Terraform backend and providers setup
+        run: |
+          chmod +x ../scripts/generate-terraform-config.sh
+          ../scripts/generate-terraform-config.sh
+      
+      - name: Terraform init and validate
+        run: |
+          terraform init
+          terraform validate
+        
+      - name: Terraform plan destroy
+        run: |
+          terraform plan -destroy \
+          -var-file="tfInputs/${{ env.ENVIRONMENT }}.tfvars" \
+          -var="project_name=${{ env.PROJECT_NAME }}" \
+          -var="environment=${{ env.ENVIRONMENT }}" \
+          -var="github_role=${{ env.AWS_ROLE }}" \
+          -var="user_role=${{ env.AWS_USER_ROLE }}" \
+          -var="lambda_temp_dir=${{ env.LAMBDA_FUNCTION_TEMP_DIR_TERRAFORM }}" \
+          -var="layer_temp_dir=${{ env.LAMBDA_LAYER_TEMP_DIR_TERRAFORM }}" \
+          -parallelism=40 \
+          -out='tfplan.out'
+
+      - name: Upload terraform artifacts to JFrog
+        run: |
+          echo Creating terraform directory
+          mkdir -p terraform-artifacts
+
+          mv tfplan.out terraform-artifacts/
+          if [ -d ${{ env.LAMBDA_FUNCTION_TEMP_DIR_TERRAFORM }} ]; then
+            mv ${{ env.LAMBDA_FUNCTION_TEMP_DIR_TERRAFORM }} terraform-artifacts/
+          fi
+          if [ -d ${{ env.LAMBDA_LAYER_TEMP_DIR_TERRAFORM }} ]; then
+            mv ${{ env.LAMBDA_LAYER_TEMP_DIR_TERRAFORM }} terraform-artifacts/
+          fi
+
+          jf rt upload \
+            --flat=false \
+            --recursive=true \
+            --target-props="version=${{ github.run_number }}" \
+            "terraform-artifacts/*" \
+            "${{ env.JFROG_ARTIFACTS_REPO }}/${{ env.REPO_NAME }}/${{ env.ENVIRONMENT }}/plan-artifacts-destroy/${{ github.run_number }}/"
+          
+          rm -rf terraform-artifacts
+          
+      - name: Set Latest Version Property
+        run: |
+          jf rt set-props \
+            "${{ env.JFROG_ARTIFACTS_REPO }}/${{ env.REPO_NAME }}/${{ env.ENVIRONMENT }}/plan-artifacts-destroy/${{ github.run_number }}/*" \
+            "latest=true"
+
+  APPROVE-DESTROY:
+    needs: [ terraform-plan-destroy ]
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref_name == 'main' && 'prod' || github.ref_name }}-approval
+
+    steps:
+      - name: Approval
+        run: |
+          echo "⚠️ WARNING!!!!!!"
+          echo "-------------------------------------------"
+          echo "This will delete resources from the ${{ github.ref_name == 'main' && 'prod' || github.ref_name }} environment"
+          echo "-------------------------------------------"
+  
+  terraform-apply-destroy:
+    needs: [ APPROVE-DESTROY ]
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref_name == 'main' && 'prod' || github.ref_name }}
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ github.workspace }}/terraform-deployment
+    permissions:
+      contents: read
+      id-token: write
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          audience: sts.amazonaws.com
+          aws-region: ${{ env.REGION }}
+          role-to-assume: ${{ env.AWS_ROLE }}
+      
+      - name: Setup Terraform latest version
+        uses: hashicorp/setup-terraform@v3
+
+      - name: JFrog Login
+        uses: jfrog/setup-jfrog-cli@v4
+        env: 
+            JF_URL: ${{ secrets.ARTIFACTORY_HOST }}
+            JF_USER: ${{ secrets.ARTIFACTORY_USERNAME }}
+            JF_ACCESS_TOKEN: ${{ secrets.ARTIFACTORY_ACCESS_TOKEN }}
+            JF_PROJECT: ${{ env.JFROG_PROJECT_KEY }}
+            
+      - name: Download this workflow build's terraform plan
+        run: |
+          jf rt download \
+            --flat=false \
+            --recursive=true \
+            "${{ env.JFROG_ARTIFACTS_REPO }}/${{ env.REPO_NAME }}/${{ env.ENVIRONMENT }}/plan-artifacts-destroy/${{ github.run_number }}/" \
+            "./"
+            mv ${{ env.REPO_NAME }}/${{ env.ENVIRONMENT }}/plan-artifacts-destroy/${{ github.run_number }}/terraform-artifacts/* ./
+            rm -rf ${{ env.REPO_NAME }}
+      
+      - name: Terraform backend and providers setup
+        run: |
+          chmod +x ../scripts/generate-terraform-config.sh
+          ../scripts/generate-terraform-config.sh
+      
+      - name: Terraform init
+        run: |
+          terraform init
+      
+      - name: Empty S3 buckets excluding Server Access Logs Bucket
+        run: |
+          chmod +x ../scripts/empty-s3-buckets.sh
+          ../scripts/empty-s3-buckets.sh tfplan.out
+      
+      - name: Terraform destroy resources
+        run: |
+          terraform apply --auto-approve 'tfplan.out'
+      
+      - name: Delete Outputs of ${{ env.REPO_NAME }} from JFrog
+        run: |
+          jf rt delete \
+            --quiet \
+            "${{ env.JFROG_ARTIFACTS_REPO }}/${{ env.REPO_NAME }}/${{ env.ENVIRONMENT }}/reusable-outputs/${{ env.REPO_NAME }}-outputs.tfvars"

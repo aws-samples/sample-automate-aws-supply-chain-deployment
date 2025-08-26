@@ -1,0 +1,146 @@
+{
+  "name":"outboundOrderLine",
+  "fields": [
+    {
+      "name": "id",
+      "type": "STRING",
+      "isRequired": true
+    },
+    {
+      "name": "cust_order_id",
+      "type": "STRING",
+      "isRequired": true
+    },
+    {
+      "name": "company_id",
+      "type": "STRING",
+      "isRequired": false
+    },
+    {
+      "name": "order_date",
+      "type": "TIMESTAMP",
+      "isRequired": false
+    },
+    {
+      "name": "product_id",
+      "type": "STRING",
+      "isRequired": true
+    },
+    {
+      "name": "product_group_id",
+      "type": "STRING",
+      "isRequired": false
+    },
+    {
+      "name": "customer_tpartner_id",
+      "type": "STRING",
+      "isRequired": false
+    },
+    {
+      "name": "status",
+      "type": "STRING",
+      "isRequired": false
+    },
+    {
+      "name": "init_quantity_requested",
+      "type": "DOUBLE",
+      "isRequired": false
+    },
+    {
+      "name": "final_quantity_requested",
+      "type": "DOUBLE",
+      "isRequired": false
+    },
+    {
+      "name": "quantity_uom",
+      "type": "STRING",
+      "isRequired": false
+    },
+    {
+      "name": "requested_delivery_date",
+      "type": "TIMESTAMP",
+      "isRequired": false
+    },
+    {
+      "name": "promised_delivery_date",
+      "type": "TIMESTAMP",
+      "isRequired": false
+    },
+    {
+      "name": "actual_delivery_date",
+      "type": "TIMESTAMP",
+      "isRequired": false
+    },
+    {
+      "name": "list_price",
+      "type": "DOUBLE",
+      "isRequired": false
+    },
+    {
+      "name": "sold_price",
+      "type": "DOUBLE",
+      "isRequired": false
+    },
+    {
+      "name": "discount",
+      "type": "DOUBLE",
+      "isRequired": false
+    },
+    {
+      "name": "currency_uom",
+      "type": "STRING",
+      "isRequired": false
+    },
+    {
+      "name": "tax",
+      "type": "DOUBLE",
+      "isRequired": false
+    },
+    {
+      "name": "ship_from_site_id",
+      "type": "STRING",
+      "isRequired": false
+    },
+    {
+      "name": "ship_to_site_id",
+      "type": "STRING",
+      "isRequired": false
+    },
+    {
+      "name": "availability_status",
+      "type": "STRING",
+      "isRequired": false
+    },
+    {
+      "name": "quantity_promised",
+      "type": "DOUBLE",
+      "isRequired": false
+    },
+    {
+      "name": "quantity_delivered",
+      "type": "DOUBLE",
+      "isRequired": false
+    },
+    {
+      "name": "channel_id",
+      "type": "STRING",
+      "isRequired": false
+    },
+    {
+      "name": "source",
+      "type": "STRING",
+      "isRequired": false
+    },
+    {
+      "name": "source_event_id",
+      "type": "STRING",
+      "isRequired": false
+    },
+    {
+      "name": "source_update_dttm",
+      "type": "TIMESTAMP",
+      "isRequired": false
+    }
+  ]
+}
+  

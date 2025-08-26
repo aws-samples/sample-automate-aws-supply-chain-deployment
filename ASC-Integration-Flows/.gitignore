@@ -1,0 +1,9 @@
+# Ignore terraform files used during resource deployment
+
+tfplan.*
+.terraform.lock.hcl
+.terraform/
+terraform-deployment/backend.tf
+terraform-deployment/providers.tf
+terraform-deployment/lambdaOutput/
+terraform-deployment/layerOutput/

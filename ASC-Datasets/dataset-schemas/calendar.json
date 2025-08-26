@@ -1,0 +1,86 @@
+{
+  "name":"calendar",
+  "fields": [
+    {
+      "name": "calendar_id",
+      "type": "STRING",
+      "isRequired": true
+    },
+    {
+      "name": "company_id",
+      "type": "STRING",
+      "isRequired": false
+    },
+    {
+      "name": "name",
+      "type": "STRING",
+      "isRequired": false
+    },
+    {
+      "name": "calendar_type",
+      "type": "STRING",
+      "isRequired": false
+    },
+    {
+      "name": "description",
+      "type": "STRING",
+      "isRequired": false
+    },
+    {
+      "name": "date",
+      "type": "TIMESTAMP",
+      "isRequired": true
+    },
+    {
+      "name": "year",
+      "type": "INT",
+      "isRequired": true
+    },
+    {
+      "name": "day",
+      "type": "INT",
+      "isRequired": true
+    },
+    {
+      "name": "week",
+      "type": "INT",
+      "isRequired": true
+    },
+    {
+      "name": "month",
+      "type": "INT",
+      "isRequired": true
+    },
+    {
+      "name": "is_working",
+      "type": "STRING",
+      "isRequired": false
+    },
+    {
+      "name": "is_holiday",
+      "type": "STRING",
+      "isRequired": false
+    },
+    {
+      "name": "eff_start_date",
+      "type": "TIMESTAMP",
+      "isRequired": true
+    },
+    {
+      "name": "eff_end_date",
+      "type": "TIMESTAMP",
+      "isRequired": true
+    },
+    {
+      "name": "source",
+      "type": "STRING",
+      "isRequired": false
+    },
+    {
+      "name": "source_update_dttm",
+      "type": "TIMESTAMP",
+      "isRequired": false
+    }
+  ]
+}
+  
