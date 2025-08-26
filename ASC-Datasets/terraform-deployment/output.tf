@@ -2,6 +2,7 @@
 # Author: AWS Professional Services
 
 output "lambda_sg" {
+  description = "Security Group ID for Lambda"
   value = module.lambda_sg.sg_id
 }
 
@@ -21,6 +22,7 @@ output "s3_buckets" {
 }
 
 output "asc_dataset_lambda_results" {
+  description = "Results of ASC dataset lambda executions"
   value = {
     for idx, results in aws_lambda_invocation.create_dataset : idx => jsondecode(results.result)
   }
