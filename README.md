@@ -5,7 +5,7 @@ AWS Supply Chain, as stated by the [AWS documentation](https://docs.aws.amazon.c
 
 It provides a seamless way for users to store data without having them to worry about managing its infrastructure.
 
-In this solution, we will be focussing on automating the creation of AWS Supply Chain Instance, AWS Supply Chain Datasets and AWS Supply Chain integration flows.
+In this solution, we will be focussing on automating the creation of AWS Supply Chain Instance, AWS Supply Chain Datasets and AWS Supply Chain Integration flows.
 
 Please follow the guidelines given below to deploy the solution and then proceed to the part of using AWS Supply Chain Analytics for analyzing the data, powered through Amazon QuickSight.
 
