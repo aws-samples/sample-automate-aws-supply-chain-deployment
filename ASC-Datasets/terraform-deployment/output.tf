@@ -36,7 +36,6 @@ output "asc_boto3_layer_arn" {
 output "asc_instance_id" {
   value       = local.asc_instance_id
   description = "ASC Instance ID"
-  sensitive   = true
 }
 
 output "asc_kms_key_arn_present" {
