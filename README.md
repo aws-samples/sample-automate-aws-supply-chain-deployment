@@ -63,6 +63,16 @@ Please follow the guidelines given below to deploy the solution and then proceed
 6. The AWS Supply Chain staging bucket triggers the integration flow to the AWS ASC Datasets once any data lands on it.
 7. The AWS ASC service integrates with AWS QuickSight Analytics to produce dashboards based on the ingested data.
 
+## Upload Sample data for the datasets
+
+- Based on the datasets that we created, [Calendar](./ASC-Datasets/dataset-schemas/calendar.json) and [Outbound Order Line](./ASC-Datasets/dataset-schemas/outbound_order_line.json), create sample CSV files for them with varied data.
+- Fetch the AWS Supply Chain **Instance ID** from the terraform outputs of the [asc_instance_id](./ASC-Datasets/terraform-deployment/output.tf) directory.
+- Note down the S3 bucket name for AWS Supply Chain that got created through our deployment - **aws-supply-chain-data-<Instance_ID>**.
+- Upload the CSV files that you created from the previous step to the S3 Bucket noted from the previous step, through the AWS Console.
+    - Calendar CSV file -> Prefix - **calendar-data/**
+    - Outbound Order Line CSV file -> Prefix - **outbound-order-line-data/**
+- This should start the AWS Supply Chain Integration flows for both the datasets.
+
 ## Setting up AWS Supply Chain access
 
 1. Search for the AWS Supply Chain service in the AWS Console.
@@ -79,7 +89,7 @@ Please follow the guidelines given below to deploy the solution and then proceed
 
 3. AWS Supply Chain provides a prebuilt dashboard for analying the mentioned datasets. We will use the **Seasonability Analysis** Dashboard. Follow the steps mentioned in this [AWS guide](https://docs.aws.amazon.com/aws-supply-chain/latest/userguide/prebuilt_dashboards.html) to add the dashboard.
 
-4. Click on the dashboard to see its analysis that would look like this - 
+4. Click on the dashboard to see its analysis that would look like thi (Based on sample CSV files for Calendar data and Outbound Order Line data) - 
 
 ![Year Over Demand History](./Images/Seasonality%20Dashboard%201.png)
 ![Seasonality Heatmap](./Images/Seasonality%20Dashboard%202.png)
