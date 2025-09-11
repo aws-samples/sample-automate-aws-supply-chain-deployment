@@ -34,7 +34,7 @@ This folder is a standalone repository that deploys ASC Instance and Datasets. I
 1. Setup [ASC-Datasets](../ASC-Datasets/) as a standalone reposoitory in your GitHub organization
 
 2. Configure the branch to be used for deployment in the [Deployment Workflow File](.github/workflows/asc-datasets.yml). This should be reflected in the [Setup GitHub environments](#setup-github-environments) section as well.
-    yaml
+     yaml
     on:
       workflow_dispatch:
       push:
@@ -42,7 +42,7 @@ This folder is a standalone repository that deploys ASC Instance and Datasets. I
           - dev     #Change to any other branch preferred for deployment
 
 3. Setup values for the following in the [Deployment Workflow File](.github/workflows/asc-datasets.yml) and [Destroy Workflow File](.github/workflows/destroy-workflow.yml)-
-    yaml
+     yaml
     env:
       REPO_NAME: "<Current ASC Datasets Repo name>"    #To be filled.
       JFROG_PROJECT_KEY: "<JFrog Project Key name>"    #To be filled.
