@@ -7,6 +7,7 @@ This folder is a standalone repository that deploys ASC Instance and Datasets. I
 
 * [Automated Deployment](#automated-deployment)
   * [Pre-Requisites](#pre-requisites)
+    * [Setup of the GitHub repository](#setup-of-the-github-repo)
     * [Setup GitHub environments](#setup-github-environments)
     * [Setup environment values in the workflow files](#setup-environment-values-in-the-workflow-files)
       * [ASC Integration flows](#asc-integration-flowsyml)
@@ -19,9 +20,33 @@ This folder is a standalone repository that deploys ASC Instance and Datasets. I
   * [Destroying the resources](#destroying-the-resources)
 
 ## Automated Deployment
-  GitHub Actions workflow is used to deploy the solution in an automated fashion from [.github](.github)
+  GitHub Actions workflow is used to deploy the solution in an automated fashion from [.github](.github).
+  GitHub workflows connect securely to your AWS environment using OIDC, which you should have configured from [here](../README.md#pre-requisites)
+
+  **NOTE**
+  - For maintaining Artifacts, we have used JFrog as the solution for Enterprise grade Artifact management as part of the GitHub workflow deployment.
+  - If you want to proceed without using JFrog, pls follow the [Manual Deployment](#manual-deployment) instructions, where we have used Amazon S3 for Artifact management.
 
 ### Pre-Requisites
+
+#### Setup of the GitHub repo
+
+1. Setup [ASC-Datasets](../ASC-Datasets/) as a standalone reposoitory in your GitHub organization
+
+2. Configure the branch to be used for deployment in the [Deployment Workflow File](.github/workflows/asc-datasets.yml). This should be reflected in the [Setup GitHub environments](#setup-github-environments) section as well.
+    yaml
+    on:
+      workflow_dispatch:
+      push:
+        branches:
+          - dev     #Change to any other branch preferred for deployment
+
+3. Setup values for the following in the [Deployment Workflow File](.github/workflows/asc-datasets.yml) and [Destroy Workflow File](.github/workflows/destroy-workflow.yml)-
+    yaml
+    env:
+      REPO_NAME: "<Current ASC Datasets Repo name>"    #To be filled.
+      JFROG_PROJECT_KEY: "<JFrog Project Key name>"    #To be filled.
+      JFROG_ARTIFACTS_REPO: "<JFrog Artifacts repo name>"    #To be filled.
 
 #### Setup GitHub environments
 
@@ -223,7 +248,7 @@ export ACCOUNT_ID=<Enter deployment Account ID>
 export ENVIRONMENT="dev"
 export LAMBDA_LAYER_TEMP_DIR_TERRAFORM="layerOutput"
 export LAMBDA_FUNCTION_TEMP_DIR_TERRAFORM="lambdaOutput"
-export AWS_USER_ROLE=<Enter user role for Console access>
+export AWS_USER_ROLE=<Enter user role ARN used for deployment>
 export S3_TERRAFORM_ARTIFACTS_BUCKET_NAME="$PROJECT_NAME-$ACCOUNT_ID-$REGION-terraform-artifacts-$ENVIRONMENT"
 ```
 

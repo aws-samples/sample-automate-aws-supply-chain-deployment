@@ -56,57 +56,6 @@ resource "aws_lambda_permission" "lambda_trigger" {
   }
 }
 
-resource "aws_lambda_event_source_mapping" "kinesis_trigger" {
-  depends_on = [aws_lambda_function.this]
-  count      = var.create_kinesis_trigger ? 1 : 0
-
-  event_source_arn                   = var.kinesis_stream_arn
-  function_name                      = aws_lambda_function.this.function_name
-  starting_position                  = var.kinesis_starting_position
-  batch_size                         = var.kinesis_batch_size
-  maximum_batching_window_in_seconds = var.kinesis_maximum_batching_window_in_seconds
-  enabled                            = var.kinesis_trigger_enabled
-  bisect_batch_on_function_error     = var.kinesis_split_batch_on_error
-  maximum_record_age_in_seconds      = var.kinesis_maximum_record_age_in_seconds
-  maximum_retry_attempts             = var.kinesis_retry_attempts
-  parallelization_factor             = var.kinesis_concurrent_batches_per_shard
-  tumbling_window_in_seconds         = var.kinesis_tumbling_window_in_seconds
-  
-  function_response_types            = var.kinesis_report_batch_item_failures ? ["ReportBatchItemFailures"] : []
-  
-  dynamic "filter_criteria" {
-    for_each = var.kinesis_filter_criteria != null ? [var.kinesis_filter_criteria] : []
-    
-    content {
-      dynamic "filter" {
-        for_each = filter_criteria.value.filters
-        
-        content {
-          pattern = filter.value.pattern
-        }
-      }
-    }
-  }
-
-  dynamic "destination_config" {
-    for_each = var.kinesis_destination_config_on_failure != null ? [var.kinesis_destination_config_on_failure] : []
-    
-    content {
-      on_failure {
-        destination_arn = destination_config.value.destination_arn
-      }
-    }
-  }
-
-  dynamic "scaling_config" {
-    for_each = var.kinesis_scaling_config != null ? [var.kinesis_scaling_config] : []
-    
-    content {
-      maximum_concurrency = scaling_config.value.maximum_concurrency
-    }
-  }
-}
-
 resource "null_resource" "lambda_jar" {
   count = var.is_java ? 1 : 0
 

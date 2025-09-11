@@ -7,6 +7,7 @@ This folder is a standalone repository that deploys ASC integration flows. It us
 
 * [Automated Deployment](#automated-deployment)
   * [Pre-Requisites](#pre-requisites)
+    * [Setup of the GitHub repository](#setup-of-the-github-repo)
     * [Setup GitHub environments](#setup-github-environments)
     * [Setup environment values in the workflow files](#setup-environment-values-in-the-workflow-files)
       * [ASC Integration flows](#asc-integration-flowsyml)
@@ -19,9 +20,34 @@ This folder is a standalone repository that deploys ASC integration flows. It us
   * [Destroying the resources](#destroying-the-resources)
 
 ## Automated Deployment
-  GitHub Actions workflow is used to deploy the solution in an automated fashion from [.github](.github)
+  GitHub Actions workflow is used to deploy the solution in an automated fashion from [.github](.github).
+  GitHub workflows connect securely to your AWS environment using OIDC, which you should have configured from [here](../README.md#pre-requisites)
+
+  **NOTE**
+  - For maintaining Artifacts, we have used JFrog as the solution for Enterprise grade Artifact management as part of the GitHub workflow deployment.
+  - If you want to proceed without using JFrog, pls follow the [Manual Deployment](#manual-deployment) instructions, where we have used Amazon S3 for Artifact management.
 
 ### Pre-Requisites
+
+#### Setup of the GitHub repo
+
+1. Setup [ASC-Integration-Flows](../ASC-Integration-Flows/) as a standalone reposoitory in your GitHub organization
+
+2. Configure the branch to be used for deployment in the [Deployment Workflow File](.github/workflows/asc-integration-flows.yml). This should be reflected in the [Setup GitHub environments](#setup-github-environments) section as well.
+    yaml
+    on:
+      workflow_dispatch:
+      push:
+        branches:
+          - dev     #Change to any other branch preferred for deployment
+
+3. Setup values for the following in the [Deployment Workflow File](.github/workflows/asc-integration-flows.yml) and [Destroy Workflow File](.github/workflows/destroy-workflow.yml)- 
+    yaml
+    env:
+      REPO_NAME: "<Current ASC Integration Flows repo name>"
+      ASC_DATASET_VARS_REPO: "<ASC Datasets repo name>"
+      JFROG_PROJECT_KEY: "<JFrog Project Key name>"
+      JFROG_ARTIFACTS_REPO: "<JFrog Artifacts repo name>"
 
 #### Setup GitHub environments
 
