@@ -34,20 +34,20 @@ This folder is a standalone repository that deploys ASC integration flows. It us
 1. Setup [ASC-Integration-Flows](../ASC-Integration-Flows/) as a standalone reposoitory in your GitHub organization
 
 2. Configure the branch to be used for deployment in the [Deployment Workflow File](.github/workflows/asc-integration-flows.yml). This should be reflected in the [Setup GitHub environments](#setup-github-environments) section as well.
-    yaml
+    ```yaml
     on:
       workflow_dispatch:
       push:
         branches:
-          - dev     #Change to any other branch preferred for deployment
+          - dev     #Change to any other branch preferred for deployment```
 
 3. Setup values for the following in the [Deployment Workflow File](.github/workflows/asc-integration-flows.yml) and [Destroy Workflow File](.github/workflows/destroy-workflow.yml)- 
-    yaml
+    ```yaml
     env:
       REPO_NAME: "<Current ASC Integration Flows repo name>"
       ASC_DATASET_VARS_REPO: "<ASC Datasets repo name>"
       JFROG_PROJECT_KEY: "<JFrog Project Key name>"
-      JFROG_ARTIFACTS_REPO: "<JFrog Artifacts repo name>"
+      JFROG_ARTIFACTS_REPO: "<JFrog Artifacts repo name>"```
 
 #### Setup GitHub environments
 
