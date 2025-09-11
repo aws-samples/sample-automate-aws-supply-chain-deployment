@@ -109,7 +109,7 @@ This is used for isolating the deployments to the specific environments with spe
   - Login's to JFrog to download the artifacts.
   - Peforms terraform init and apply.
   - [Update ASC KMS Key Policy](./scripts/update-asc-kms-policy.sh) with the service's requirements.
-  - [Update KMS key policies](./scripts/update-kms-policy.sh) with the IAM roles created by this repository.
+  - [Update AWS KMS key policies](./scripts/update-kms-policy.sh) with the IAM roles created by this repository.
   - Upload outputs of this repository to JFrog.
 
 #### [Destroy Workflow](.github/workflows/destroy-workflow.yml)
@@ -205,7 +205,7 @@ chmod +x ../scripts/update-asc-kms-policy.sh
 ```
 
 ```bash
-# Update KMS Keys' policy with IAM roles
+# Update AWS KMS Keys' policy with IAM roles
 chmod +x ../scripts/update-kms-policy.sh
 ../scripts/update-kms-policy.sh
 ```
@@ -223,7 +223,7 @@ jq -r 'to_entries | map(
 ```
 
 ```bash
-# Upload reformed outputs file to S3 terraform artifacts bucket (For retrieval from other repositories)
+# Upload reformed outputs file to Amazon S3 terraform artifacts bucket (For retrieval from other repositories)
 aws s3 cp $REPO_NAME-outputs.tfvars s3://$S3_TERRAFORM_ARTIFACTS_BUCKET_NAME/$REPO_NAME-outputs.tfvars
 rm -f raw_output.json
 rm -f $REPO_NAME-outputs.tfvars
