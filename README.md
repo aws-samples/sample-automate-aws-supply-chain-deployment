@@ -37,8 +37,8 @@ Please follow the guidelines given below to deploy the solution and then proceed
         - AWS Supply Chain service   (Full Access preferred for deploying its components like Datasets and Integration Flows, along with accessing it from the AWS Console)
         - Amazon Chime               (For use by the AWS Supply Chain service)
         - Amazon EventBridge         (For use by the AWS Supply Chain service)
-        - AWS KMS                    (For access to the AWS KMS keys used for the Amazon S3 buckets)
-        - Amazon S3                  (For access to the Artifacts bucket, Server access logging bucket, and the AWS Supply Chain Service bucket)
+        - AWS KMS                    (For access to the AWS KMS keys used for the Amazon S3 Artifacts bucket and the Amazon S3 ASC Staging Bucket)
+        - Amazon S3                  (For access to the Amazon S3 Artifacts bucket, Amazon S3 Server access logging bucket, and the Amazon S3 ASC Staging bucket. If you are using manual deployment, permissions for Amazon S3 Terraform Artifacts bucket is also required)
         - Amazon EC2                 (For Amazon EC2 Security groups and AWS VPC endpoints)
         - AWS Lambda                 (For creating the AWS Lambda functions that deploys the AWS Supply Chain components)
         - AWS IAM                    (For creating AWS Lambda service roles)
@@ -58,8 +58,13 @@ Please follow the guidelines given below to deploy the solution and then proceed
     3. [Dev environment inputs for ASC integration flows repository](./ASC-Integration-Flows/terraform-deployment/tfInputs/dev.tfvars)
     4. [Prod environment inputs for ASC integration flows repository](./ASC-Integration-Flows/terraform-deployment/tfInputs/prod.tfvars)
 
--  If you prefer the deployment to happen through GitHub Actions workflows, do the following - 
-    [Setup secrets](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets#creating-secrets-for-an-organization) in your GitHub organization. This will be stored securely in GitHub
+-  If you prefer the deployment to happen through GitHub Actions workflows, do the following -
+
+    1. Setup [JFrog Artifactory account](https://jfrog.com/artifactory/?utm_source=google&utm_medium=cpc_search&utm_campaign=SearchDSKBrandAPACIN202506&utm_term=jfrog%20cloud&gads_network=g&utm_content=u-bin&gads_campaign_id=22674833884&gads_adgroup_id=184501797241&gads_extension_id=233003714635&gads_target_id=aud-312135645780:kwd-1598615735032&gads_matchtype=b&gad_source=1&gad_campaignid=22674833884&gbraid=0AAAAADqV85U5B37iapTR9IIFHBvydF5AQ&gclid=CjwKCAjwiY_GBhBEEiwAFaghvqdNV-odNLZXPHjT7NAwf8lA-QuMtg666hgvDW1oCJ4nn7wvf869_xoCW4IQAvD_BwE) to get the host name, login username and login access token.
+
+    2. Setup [JFrog Project key and repository](https://jfrog.com/help/r/jfrog-platform-administration-documentation/step-1-set-up-a-new-project) for storing Artifacts.
+    
+    3. [Setup secrets](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets#creating-secrets-for-an-organization) in your GitHub organization. This will be stored securely in GitHub
 
     | **Secret**                                | **Value / Description**                                                                    |
     |-------------------------------------------|--------------------------------------------------------------------------------------------|
@@ -91,17 +96,41 @@ Please follow the guidelines given below to deploy the solution and then proceed
 
 ## Architecture
 
-![ASC Deployment Flow](./Images/Architecture.png)
+### Automated deployment through GitHub Actions workflows 
+![ASC Deployment Flow through GitHub workflows](./Images/Architecture%20Automated.png)
 
-### Steps involved -
-1. Deploy ASC Datasets infrastructure and the Databases, through the deployment steps mentioned in [README](./ASC-Datasets/README.md)
+**Artifactory Management** - 
+**JFrog Artifactory** for enterprise grade Artifacts management. It will be used for storing resource information and outputs to be used for in a multi-repo deployment.
+
+#### Steps involved -
+1. Deploy ASC Datasets infrastructure and the Databases, through the deployment steps mentioned in [README](./ASC-Datasets/README.md). Follow the automated deployment approach using GitHub workflows.
 2. AWS VPC endpoints, AWS Security Groups, AWS KMS keys, and AWS CloudWatch log groups are created.
 3. The following AWS Supply Chain resources are created -
     - ASC Instance AWS Lambda that creates the ASC instance.
     - ASC Namespace AWS Lambda that creates/updates/deletes the ASC namesapces.
     - ASC Dataset AWS Lambda that creates/updates/deletes the ASC datasets.
     - AWS Supply Chain Staging S3 bucket is created.
-4. Deploy ASC Integration Flows infrastructure and the data pipelines required for it, through the deployment steps mentioned in [README](./ASC-Integration-Flows/README.md)
+4. Deploy ASC Integration Flows infrastructure and the data pipelines required for it, through the deployment steps mentioned in [README](./ASC-Integration-Flows/README.md). Follow the automated deployment approach using GitHub workflows.
+    - ASC Integration Flows AWS Lambda that creates/updates/deletes the integration flows.
+5. Source data can now be ingested to the AWS Supply Chain Staging S3 bucket. Some of the [preferred methods](#secure-data-ingestion-from-source-systems-to-amazon-s3) and the [data ingestion for this solution](#upload-sample-data-for-the-datasets) is mentioned below.
+6. Once any data lands on the AWS Supply Chain staging bucket, the service automatically triggers the integration flow which was created in this solution, to the ASC Datasets.
+7. The AWS Supply Chain service integrates with Amazon QuickSight Analytics to produce dashboards based on the ingested data.
+
+### Manual deployment through Terraform
+![ASC Deployment Flow through Terraform](./Images/Architecture%20Manual.png)
+
+**Artifactory Management** - 
+**Amazon S3** for enterprise grade Artifacts management. It will be used for storing resource information and outputs to be used for in a multi-repo deployment.
+
+#### Steps involved -
+1. Deploy ASC Datasets infrastructure and the Databases, through the deployment steps mentioned in [README](./ASC-Datasets/README.md). Follow the manual deployment approach from your local machine using Terraform.
+2. AWS VPC endpoints, AWS Security Groups, AWS KMS keys, and AWS CloudWatch log groups are created.
+3. The following AWS Supply Chain resources are created -
+    - ASC Instance AWS Lambda that creates the ASC instance.
+    - ASC Namespace AWS Lambda that creates/updates/deletes the ASC namesapces.
+    - ASC Dataset AWS Lambda that creates/updates/deletes the ASC datasets.
+    - AWS Supply Chain Staging S3 bucket is created.
+4. Deploy ASC Integration Flows infrastructure and the data pipelines required for it, through the deployment steps mentioned in [README](./ASC-Integration-Flows/README.md). Follow the manual deployment approach from your local machine using Terraform.
     - ASC Integration Flows AWS Lambda that creates/updates/deletes the integration flows.
 5. Source data can now be ingested to the AWS Supply Chain Staging S3 bucket. Some of the [preferred methods](#secure-data-ingestion-from-source-systems-to-amazon-s3) and the [data ingestion for this solution](#upload-sample-data-for-the-datasets) is mentioned below.
 6. Once any data lands on the AWS Supply Chain staging bucket, the service automatically triggers the integration flow which was created in this solution, to the ASC Datasets.
@@ -117,12 +146,12 @@ In this solution, we have demonstrated direct upload of sample datasets to the A
 **Setup Process:**
 1. Create a Amazon Kinesis Data Firehose delivery stream targeting the AWS Supply Chain S3 bucket.
 2. Configure delivery stream with appropriate prefixes (calendar-data/, outbound-order-line-data/).
-3. Set up AWS IAM roles with minimal permissions for Firehose to write to Amazon S3.
+3. Set up AWS IAM roles with minimal permissions for Amazon Data Firehose to write to Amazon S3 ASC Staging Bucket, along with permissions for their AWS KMS keys.
 4. Configure your organizations' source environment to send data records to the Amazon Firehose stream.
 
 **Security Features:**
 - **Encryption in Transit**: All data sent to Firehose is encrypted using HTTPS/TLS.
-- **Encryption at Rest**: Configure AWS KMS encryption for Amazon S3 delivery using the ASC staging KMS key that was created by this solution.
+- **Encryption at Rest**: Configure AWS KMS encryption for Amazon S3 delivery using the AWS KMS ASC staging key that was created by this solution.
 - **Access Control**: Use AWS IAM roles with least-privilege permissions for Firehose delivery.
 - **Data Transformation**: Optional Lambda functions can validate and transform data before Amazon S3 delivery.
 - **Monitoring**: Amazon CloudWatch metrics and logs for delivery success/failure tracking.
@@ -174,4 +203,10 @@ aws s3 cp outbound_order_line_sample.csv s3://aws-supply-chain-data-<Instance_ID
 - The Dashboard provides insights on Demand over the years based on the datasets and the ingested data over it.
 - We can further specify the ProductID, CustomerID, years, etc. to view the analysis over those values.
 
-5. This solution can be replicated for more datasets as per the requirements and be queried for further analysis, through AWS Supply Chain provided prebuilt-dashboards or cutom integration with Amazon QuickSight. 
+5. This solution can be replicated for more datasets as per the requirements and be queried for further analysis, through AWS Supply Chain provided prebuilt-dashboards or cutom integration with Amazon QuickSight.
+
+## Security
+See [CONTRIBUTING](./CONTRIBUTING.md) for more information.
+
+## License
+This library is licensed under the MIT-0 License. See the [LICENSE](./LICENSE) file.
