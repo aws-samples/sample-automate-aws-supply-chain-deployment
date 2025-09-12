@@ -80,17 +80,21 @@ Please follow the guidelines given below to deploy the solution and then proceed
 
 ## This repository contains two folders -
 
-### 1. [ASC-Datasets](./ASC-Datasets/) - Infrastructure required for this solution
+1. ### [ASC-Datasets](./ASC-Datasets/) - Infrastructure required for this solution
 
     - This is a standalone repository and its configurations should be deployed first.
-    - Instructions to deploy this is given in its [README](./ASC-Datasets/README.md)<br>
+    - Instructions to deploy this is given in its [README](./ASC-Datasets/README.md)
 
-### 2. [ASC-Integration-Flows](./ASC-Integration-Flows/) - Infrastructure required to enable the Data pipelines for this solution
+
+
+2. ### [ASC-Integration-Flows](./ASC-Integration-Flows/) - Infrastructure required to enable the Data pipelines for this solution
 
     - This is a standalone repository and should be deployed after Step 1.
-    - Instructions to deploy this is given in its [README](./ASC-Integration-Flows/README.md)<br>
+    - Instructions to deploy this is given in its [README](./ASC-Integration-Flows/README.md)
 
-### 3. Operational Flow for this solution begins from [Data ingestion](#upload-sample-data-for-the-datasets)
+    
+
+3. ### Operational Flow for this solution begins from [Data ingestion](#upload-sample-data-for-the-datasets)
 
     - This shows how we can upload some sample CSV dataset files to test this solution.
 
