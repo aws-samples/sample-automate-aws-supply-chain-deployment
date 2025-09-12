@@ -21,7 +21,7 @@ This folder is a standalone repository that deploys ASC Instance and Datasets. I
 
 ## Automated Deployment
   GitHub Actions workflow is used to deploy the solution in an automated fashion from [.github](.github).
-  GitHub workflows connect securely to your AWS environment using OIDC, which you should have configured from [here](../README.md#pre-requisites)
+  GitHub workflows connect securely to your AWS environment using OIDC, which you should have configured from [Pre-Requisistes](../README.md#pre-requisites)
 
   **NOTE**
   - For maintaining Artifacts, we have used **JFrog** as the solution for enterprise grade Artifacts management as part of the GitHub workflow deployment.
