@@ -37,6 +37,8 @@ Ensure the following are installed in your local machine
 - [Setup AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
 - [Setup Git CLI](https://docs.github.com/en/get-started/git-basics/set-up-git)
 
+Follow these steps to deploy this solution:
+
 - Create a VPC with 2 private subnets in your AWS Account in the region of your choice.
 
 - Setting up the deployment role used for this solution -
@@ -215,7 +217,8 @@ aws s3 cp outbound_order_line_sample.csv s3://aws-supply-chain-data-<Instance_ID
 
 - [Setup Amazon Q](https://docs.aws.amazon.com/aws-supply-chain/latest/userguide/enabling_QinASC.html) in AWS Supply Chain.
 
-- The chat interface in the right side would answer queries like this, based on this solution. 
+- The chat interface in the right side would answer queries like this, based on this solution.
+
 ![Amazon Q in AWS Supply Chain](./Images/Amazon%20Q%20in%20AWS%20Supply%20Chain.png)
 
 5. This solution can be replicated for more datasets as per the requirements and be queried for further analysis, through AWS Supply Chain provided prebuilt-dashboards or cutom integration with Amazon QuickSight.
