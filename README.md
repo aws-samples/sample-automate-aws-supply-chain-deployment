@@ -213,7 +213,7 @@ aws s3 cp outbound_order_line_sample.csv s3://aws-supply-chain-data-<Instance_ID
 - The Dashboard provides insights on Demand over the years based on the datasets and the ingested data over it.
 - We can further specify the ProductID, CustomerID, years, etc. to view the analysis over those values.
 
-4. You can use Amazon Q to ask questions related to your AWS Supply Chain Instance
+## Using Amazon Q to ask questions related to your AWS Supply Chain Instance
 
 - [Setup Amazon Q](https://docs.aws.amazon.com/aws-supply-chain/latest/userguide/enabling_QinASC.html) in AWS Supply Chain.
 
@@ -222,7 +222,7 @@ aws s3 cp outbound_order_line_sample.csv s3://aws-supply-chain-data-<Instance_ID
 ![Amazon Q in AWS Supply Chain](./Images/Amazon%20Q%20in%20AWS%20Supply%20Chain.png)
 </div>
 
-5. This solution can be replicated for more datasets as per the requirements and be queried for further analysis, through AWS Supply Chain provided prebuilt-dashboards or cutom integration with Amazon QuickSight.
+This solution can be replicated for more datasets as per the requirements and be queried for further analysis, through AWS Supply Chain provided prebuilt-dashboards or cutom integration with Amazon QuickSight.
 
 ## Security
 See [CONTRIBUTING](./CONTRIBUTING.md) for more information.
