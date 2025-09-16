@@ -30,8 +30,15 @@ Please follow the guidelines given below to deploy the solution and then proceed
 **ASC** - AWS Supply Chain Service
 
 ## Pre-Requisites
+Ensure the following are installed in your local machine 
+
+- [Setup Terraform](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli) v1.12 or higher
+- [Setup Python](https://www.python.org/downloads/) v3.13
+- [Setup AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
+- [Setup Git CLI](https://docs.github.com/en/get-started/git-basics/set-up-git)
 
 - Create a VPC with 2 private subnets in your AWS Account in the region of your choice.
+
 - Setting up the deployment role used for this solution -
     1. Sufficient permissions are required for the IAM role to the following services -
         - AWS Supply Chain service   (Full Access preferred for deploying its components like Datasets and Integration Flows, along with accessing it from the AWS Console)
@@ -46,6 +53,7 @@ Please follow the guidelines given below to deploy the solution and then proceed
 
     2. If you prefer to deploy through the GitHub workflows -
         - [Setup OIDC](https://docs.github.com/en/actions/how-tos/secure-your-work/security-harden-deployments/oidc-in-aws#configuring-the-role-and-trust-policy) for the IAM role with the permissions mentioned above.
+        - Ensure you create an IAM role with similar permissions to access the AWS Console as well. You can refer the below step for it.
     
     3. If you prefer to do manual deployment -
         - Ensure AWS CLI is configured in your local machine.
@@ -66,17 +74,17 @@ Please follow the guidelines given below to deploy the solution and then proceed
     
     3. [Setup secrets](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets#creating-secrets-for-an-organization) in your GitHub organization. This will be stored securely in GitHub
 
-    | **Secret**                                | **Value / Description**                                                                    |
-    |-------------------------------------------|--------------------------------------------------------------------------------------------|
-    | **ACCOUNT_ID_DEV**                        | AWS Deployment Account ID for Dev environment                                              |
-    | **ACCOUNT_ID_PROD**                       | AWS Deployment Account ID for Prod environment                                             |
-    | **AWS_ROLE_DEV**                          | Deployment role ARN for Dev environment                                                    |
-    | **AWS_ROLE_PROD**                         | Deployment role ARN for Prod environment if you need Production pipeline                   |
-    | **AWS_USER_ROLE_DEV**                     | User's role ARN for Dev environment (With similar permissions as the deployment role)      |
-    | **AWS_USER_ROLE_PROD**                    | User's role ARN for Prod environment (With similar permissions as the deployment role)     |
-    | **ARTIFACTORY_HOST**                      | JFrog Artifactory Domain name                                                              | 
-    | **ARTIFACTORY_USERNAME**                  | JFrog Artifactory Login Username                                                           |
-    | **ARTIFACTORY_ACCESS_TOKEN**              | JFrog Artifactory Login Access Token                                                       |
+    | **Secret**                                | **Value / Description**                                                                                |
+    |-------------------------------------------|--------------------------------------------------------------------------------------------------------|
+    | **ACCOUNT_ID_DEV**                        | AWS Deployment Account ID for Dev environment                                                          |
+    | **ACCOUNT_ID_PROD**                       | AWS Deployment Account ID for Prod environment                                                         |
+    | **AWS_ROLE_DEV**                          | Deployment role ARN for Dev environment                                                                |
+    | **AWS_ROLE_PROD**                         | Deployment role ARN for Prod environment if you need Production pipeline                               |
+    | **AWS_USER_ROLE_DEV**                     | User's AWS console role ARN for Dev environment (With similar permissions as the deployment role)      |
+    | **AWS_USER_ROLE_PROD**                    | User's AWS console role ARN for Prod environment (With similar permissions as the deployment role)     |
+    | **ARTIFACTORY_HOST**                      | JFrog Artifactory Domain name                                                                          | 
+    | **ARTIFACTORY_USERNAME**                  | JFrog Artifactory Login Username                                                                       |
+    | **ARTIFACTORY_ACCESS_TOKEN**              | JFrog Artifactory Login Access Token                                                                   |
 
 ## This repository contains two folders -
 
@@ -202,6 +210,13 @@ aws s3 cp outbound_order_line_sample.csv s3://aws-supply-chain-data-<Instance_ID
 
 - The Dashboard provides insights on Demand over the years based on the datasets and the ingested data over it.
 - We can further specify the ProductID, CustomerID, years, etc. to view the analysis over those values.
+
+4. You can use Amazon Q to ask questions related to your AWS Supply Chain Instance
+
+- [Setup Amazon Q](https://docs.aws.amazon.com/aws-supply-chain/latest/userguide/enabling_QinASC.html) in AWS Supply Chain.
+
+- The chat interface in the right side would answer queries like this, based on this solution. 
+![Amazon Q in AWS Supply Chain](./Images/Amazon%20Q%20in%20AWS%20Supply%20Chain.png)
 
 5. This solution can be replicated for more datasets as per the requirements and be queried for further analysis, through AWS Supply Chain provided prebuilt-dashboards or cutom integration with Amazon QuickSight.
 

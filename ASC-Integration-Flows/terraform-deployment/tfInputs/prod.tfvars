@@ -8,5 +8,4 @@ vpc_config = [{
 
 tags = {
   automation  = "terraform"
-  repo-name   = "<Current ASC Integration Flows repo name>"   #To be filled
 }

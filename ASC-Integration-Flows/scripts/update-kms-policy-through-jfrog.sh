@@ -93,11 +93,6 @@ echo "$ROLE_ARNS" | jq -r '.[]'
 
 # Iterate over each KMS key and update policy
 for KEY_ALIAS in $(echo "$KMS_KEYS" | jq -r 'keys[]'); do
-  #Ignore asc_staging key in Dev Environment
-  if [[ "$ENVIRONMENT" == "dev" && "$KEY_ALIAS" == "asc_staging" ]]; then
-    echo "⏭️ Skipping asc_staging key in dev environment..."
-    continue
-  fi
 
   KEY_ID=$(echo "$KMS_KEYS" | jq -r --arg alias "$KEY_ALIAS" '.[$alias]')
   echo "Updating KMS policy for key ($KEY_ALIAS)..."

@@ -8,7 +8,6 @@ vpc_config = [{
 
 tags = {
   automation  = "terraform"
-  repo-name   = "<Current ASC Datasets repo name>"   #To be filled
 }
 
 instance_operation = "CREATE"

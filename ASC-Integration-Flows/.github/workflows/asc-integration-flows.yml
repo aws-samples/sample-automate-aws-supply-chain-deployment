@@ -29,10 +29,10 @@ env:
   LAMBDA_FUNCTION_TEMP_DIR_TERRAFORM: "lambdaOutput"
   ACCOUNT_ID: ${{ 
     github.ref_name == 'main' && secrets.ACCOUNT_ID_PROD ||
-    github.ref_name == 'dev' && secrets.ACCOUNT_ID_DEV ||
+    github.ref_name == 'dev' && secrets.ACCOUNT_ID_DEV }}
   AWS_ROLE: ${{ 
     github.ref_name == 'main' && secrets.AWS_ROLE_PROD ||
-    github.ref_name == 'dev' && secrets.AWS_ROLE_DEV ||
+    github.ref_name == 'dev' && secrets.AWS_ROLE_DEV }}
 
 jobs:
   terraform-validate-and-plan:
