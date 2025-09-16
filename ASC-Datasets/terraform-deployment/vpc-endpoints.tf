@@ -1,25 +1,9 @@
 # Software (software, scripts or sample code) is licensed under the Apache License, Version 2.0.
 # Author: AWS Professional Services
 
-# Create a VPC Gateway Endpoint for DynamoDB
-data "aws_prefix_list" "dynamodb" {
-  name = "com.amazonaws.${local.region}.dynamodb"
-}
-
 # Create a VPC Gateway Endpoint for S3
 data "aws_prefix_list" "s3" {
   name = "com.amazonaws.${local.region}.s3"
-}
-
-#Create a VPC Gateway endpoint for DynamoDB
-resource "aws_vpc_endpoint" "dynamodb-endpoint" {
-  vpc_id       = var.vpc_config[0].vpc_id
-  service_name = "com.amazonaws.${local.region}.dynamodb"
-  
-  vpc_endpoint_type = "Gateway"
-  route_table_ids = distinct([for rt in data.aws_route_table.private : rt.route_table_id])
-  
-  tags = var.tags
 }
 
 #Create a VPC Gateway endpoint for S3

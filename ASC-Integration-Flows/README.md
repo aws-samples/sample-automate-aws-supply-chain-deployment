@@ -7,6 +7,7 @@ This folder is a standalone repository that deploys ASC integration flows. It us
 
 * [Automated Deployment](#automated-deployment)
   * [Pre-Requisites](#pre-requisites)
+    * [Setup of the GitHub repository](#setup-of-the-github-repo)
     * [Setup GitHub environments](#setup-github-environments)
     * [Setup environment values in the workflow files](#setup-environment-values-in-the-workflow-files)
       * [ASC Integration flows](#asc-integration-flowsyml)
@@ -19,9 +20,48 @@ This folder is a standalone repository that deploys ASC integration flows. It us
   * [Destroying the resources](#destroying-the-resources)
 
 ## Automated Deployment
-  GitHub Actions workflow is used to deploy the solution in an automated fashion from [.github](.github)
+  GitHub Actions workflow is used to deploy the solution in an automated fashion from [.github](.github).
+  GitHub workflows connect securely to your AWS environment using OIDC, which you should have configured from [Pre-Requisistes](../README.md#pre-requisites)
+
+  **NOTE**
+  - For maintaining Artifacts, we have used **JFrog** as the solution for enterprise grade Artifacts management as part of the GitHub workflow deployment.
+  - If you want to proceed without using **JFrog**, please follow the [Manual Deployment](#manual-deployment) instructions, where we have used **Amazon S3** for enterprise grade Artifacts management.
 
 ### Pre-Requisites
+
+Ensure **Git CLI** is installed in your local machine.
+
+#### Setup of the GitHub repo
+
+1. Clone this repository to your local machine.
+```bash
+git clone <INSERT_GITHUB_URL>
+cd ASC-Deployment
+```
+
+2. Copy [ASC-Integration-Flows](../ASC-Integration-Flows/) directory to a new location
+```bash
+cp -r ASC-Integration-Flows ../ASC-Integration-Flows-standalone
+cd ../ASC-Integration-Flows-standalone
+```
+
+3. Setup [[ASC-Integration-Flows](../ASC-Integration-Flows/) as a standalone reposoitory in your GitHub organization.
+```bash
+git init
+git add .
+git commit -m "Initial commit: ASC-Integration-Flows standalone repository"
+git remote add origin <INSERT_ASC_Integration_Flows_GITHUB_URL>
+git branch -M dev
+```
+
+4. Configure the branch to be used for deployment in the [Deployment Workflow File](.github/workflows/asc-integration-flows.yml). This should be reflected in the [Setup GitHub environments](#setup-github-environments) section as well.
+    ```yaml
+    on:
+      workflow_dispatch:
+      push:
+        branches:
+          - dev     #Change to any other branch preferred for deployment
+    ```
 
 #### Setup GitHub environments
 
@@ -34,38 +74,43 @@ This is used for isolating the deployments to the specific environments with spe
 
 -   The following environment values are configured in the workflow file:
 
-    | **Parameter**                             | **Value / Description**                                       |
-    |-------------------------------------------|---------------------------------------------------------------|
-    | **PROJECT_NAME**                          | `asc-deployment-poc`                                          |
-    | **REGION**                                | AWS Deployment Region                                         |
-    | **ACCOUNT_ID**                            | AWS Deployment Account ID                                     |
-    | **REPO_NAME**                             | Repository Name for ASC Integration Flows                     |
-    | **JFROG_PROJECT_KEY**                     | JFrog Project Key                                             |
-    | **JFROG_ARTIFACTS_REPO**                  | JFrog Repository Name                                         | 
-    | **ENVIRONMENT**                           | `dev`, or `prod` (based on the branch)                        |
-    | **LAMBDA_FUNCTION_TEMP_DIR_TERRAFORM**    | `lambdaOutput` (used during Terraform deployment)             |
-    | **LAMBDA_LAYER_TEMP_DIR_TERRAFORM**       | `layerOutput` (used during Terraform deployment)              |
-    | **AWS_ROLE**                              | The deployment role used by the workflow                      |
-    | **ASC_DATASET_VARS_REPO**                 | The repository name of ASC Datasets                           |
+    | **Parameter**                             | **Value / Description**                                                            |
+    |-------------------------------------------|------------------------------------------------------------------------------------|
+    | **PROJECT_NAME**                          | `asc-deployment-poc`                                                               |
+    | **REGION**                                | AWS Deployment Region                                                              |
+    | **ACCOUNT_ID**                            | AWS Deployment Account ID                                                          |
+    | **REPO_NAME**                             | Repository Name for ASC Integration Flows                                          |
+    | **JFROG_PROJECT_KEY**                     | JFrog Project Key created from [Pre-Requisites](../README.md#pre-requisites)       |
+    | **JFROG_ARTIFACTS_REPO**                  | JFrog Repository Name created from [Pre-Requisites](../README.md#pre-requisites)   |
+    | **ENVIRONMENT**                           | `dev`, or `prod` (based on the branch)                                             |
+    | **LAMBDA_FUNCTION_TEMP_DIR_TERRAFORM**    | `lambdaOutput` (used during Terraform deployment)                                  |
+    | **LAMBDA_LAYER_TEMP_DIR_TERRAFORM**       | `layerOutput` (used during Terraform deployment)                                   | 
+    | **AWS_ROLE**                              | The deployment role ARN used by the workflow                                       |
+    | **ASC_DATASET_VARS_REPO**                 | The repository name of ASC Datasets                                                |
 
 ##### [destroy-workflow.yml](.github/workflows/destroy-workflow.yml)
 
 -   The following environment values are configured in the workflow file:
 
-    | **Parameter**                             | **Value / Description**                                       |
-    |-------------------------------------------|---------------------------------------------------------------|
-    | **PROJECT_NAME**                          | `asc-deployment-poc`                                          |
-    | **REGION**                                | AWS Deployment Region                                         |
-    | **ACCOUNT_ID**                            | AWS Deployment Account ID                                     |
-    | **REPO_NAME**                             | Repository Name for ASC Integration Flows                     |
-    | **JFROG_PROJECT_KEY**                     | JFrog Project Key                                             |
-    | **JFROG_ARTIFACTS_REPO**                  | JFrog Repository Name                                         | 
-    | **ENVIRONMENT**                           | `dev`, or `prod` (based on the branch)                        |
-    | **LAMBDA_FUNCTION_TEMP_DIR_TERRAFORM**    | `lambdaOutput` (used during Terraform deployment)             |
-    | **LAMBDA_LAYER_TEMP_DIR_TERRAFORM**       | `layerOutput` (used during Terraform deployment)              |
-    | **AWS_ROLE**                              | The deployment role used by the workflow                      |
-    | **ASC_DATASET_VARS_REPO**                 | The repository name of ASC Datasets                           |
- 
+    | **Parameter**                             | **Value / Description**                                                            |
+    |-------------------------------------------|------------------------------------------------------------------------------------|
+    | **PROJECT_NAME**                          | `asc-deployment-poc`                                                               |
+    | **REGION**                                | AWS Deployment Region                                                              |
+    | **ACCOUNT_ID**                            | AWS Deployment Account ID                                                          |
+    | **REPO_NAME**                             | Repository Name for ASC Integration Flows                                          |
+    | **JFROG_PROJECT_KEY**                     | JFrog Project Key created from [Pre-Requisites](../README.md#pre-requisites)       |
+    | **JFROG_ARTIFACTS_REPO**                  | JFrog Repository Name created from [Pre-Requisites](../README.md#pre-requisites)   |
+    | **ENVIRONMENT**                           | `dev`, or `prod` (based on the branch)                                             |
+    | **LAMBDA_FUNCTION_TEMP_DIR_TERRAFORM**    | `lambdaOutput` (used during Terraform deployment)                                  |
+    | **LAMBDA_LAYER_TEMP_DIR_TERRAFORM**       | `layerOutput` (used during Terraform deployment)                                   |
+    | **AWS_ROLE**                              | The deployment role ARN used by the workflow                                       |
+    | **ASC_DATASET_VARS_REPO**                 | The repository name of ASC Datasets                                                |
+
+- Push your changes to the repository that you created for ASC-Integration-Flows, to the same branch that you had configured for deployment.
+```bash
+git push -u origin dev
+```
+
 ### Workflow Steps
 #### [Deployment Workflow](.github/workflows/asc-integration-flows.yml)
 - This is used to deploy the resources needed for this solution
@@ -83,11 +128,12 @@ This is used for isolating the deployments to the specific environments with spe
   - Sets up Python 3.13.
   - Login's to JFrog to download the artifacts.
   - Peforms terraform init and apply.
-  - [Updates KMS key policies](./scripts/update-kms-policy-through-jfrog.sh) with the IAM roles created by this repository.
+  - [Updates AWS KMS key policies](./scripts/update-kms-policy-through-jfrog.sh) with the IAM roles created by this repository.
   - Upload outputs of this repository to JFrog.
 
 #### [Destroy Workflow](.github/workflows/destroy-workflow.yml)
 - This is used to destroy the deployed resources needed for this solution
+- This should be run manually from the GitHub actions workflows page **Destroy workflow** from the respective branch used for deployment.
 
 - The workflow performs the following steps in an overview -
   - Validates the branch that triggered the flow to destroy resources (Only dev or main is allowed).
@@ -109,21 +155,28 @@ This is used for isolating the deployments to the specific environments with spe
 ## Manual Deployment
 ### Deployment of the resources
 
-We use S3 bucket for artifacts instead of JFrog for the purpose of this solution.
+We use AWS S3 bucket for artifacts instead of JFrog for the purpose of this solution.
 
-- Setup Terraform v1.12 or higher
-- Setup Python 3.13
+```bash
+#Clone this repository to your local machine.
+git clone <INSERT_GITHUB_URL>
+```
 
 ``` bash
 # Go to terraform's directory
-cd terraform-deployment
+cd ASC-Deployment/ASC-Integration-Flows/terraform-deployment
+```
+
+```bash
+# Assume the IAM role used for deployment
+aws sts assume-role --role-arn <enter AWS user role ARN> --role-session-name <your-session-name>
 ```
 
 ```bash
 # Export Environment variables
 export REGION=<Enter deployment region>
-export REPO_NAME=<Enter Current ASC Integration Flows repo name>
-export ASC_DATASET_VARS_REPO=<Enter Current ASC Datasets repo name>  #Must be the same repo name used for ASC Datasets deployment
+export REPO_NAME=<Enter Current ASC Integration Flows repo name or the directory name>
+export ASC_DATASET_VARS_REPO=<Enter Current ASC Datasets repo name or the directory name>  #Must be the same repo/directory name used for ASC Datasets deployment
 export PROJECT_NAME="asc-deployment-poc"
 export ACCOUNT_ID=<Enter deployment Account ID>
 export ENVIRONMENT="dev"
@@ -168,7 +221,7 @@ terraform apply tfplan.out
 ```
 
 ```bash
-# Update KMS Keys' policy with IAM roles
+# Update AWS KMS Keys' policy with IAM roles
 chmod +x ../scripts/update-kms-policy-through-s3.sh
 ../scripts/update-kms-policy-through-s3.sh $ASC_DATASET_VARS_REPO
 ```
@@ -186,7 +239,7 @@ jq -r 'to_entries | map(
 ```
 
 ```bash
-# Upload reformed outputs file to S3 terraform artifacts bucket (For retrieval from other repositories)
+# Upload reformed outputs file to Amazon S3 terraform artifacts bucket (For retrieval from other repositories)
 aws s3 cp $REPO_NAME-outputs.tfvars s3://$S3_TERRAFORM_ARTIFACTS_BUCKET_NAME/$REPO_NAME-outputs.tfvars
 rm -f raw_output.json
 rm -f $REPO_NAME-outputs.tfvars
@@ -194,14 +247,21 @@ rm -f $REPO_NAME-outputs.tfvars
 
 ### Destroying the resources
 
-We use S3 bucket for artifacts instead of JFrog for the purpose of this solution.
+We use AWS S3 bucket for artifacts instead of JFrog for the purpose of this solution.
 
-- Setup Terraform v1.12 or higher
-- Setup Python 3.13
+```bash
+#Clone this repository to your local machine.
+git clone <INSERT_GITHUB_URL>
+```
 
 ``` bash
 # Go to terraform's directory
-cd terraform-deployment
+cd ASC-Deployment/ASC-Integration-Flows/terraform-deployment
+```
+
+```bash
+# Assume the IAM role used for deployment
+aws sts assume-role --role-arn <enter AWS user role ARN> --role-session-name <your-session-name>
 ```
 
 ```bash

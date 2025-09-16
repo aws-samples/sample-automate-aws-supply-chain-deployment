@@ -5,9 +5,9 @@ name: Deployment workflow
 
 on:
   workflow_dispatch:
-  # push:
-  #   branches:
-  #     - dev
+  push:
+    branches:
+      - dev     #Change to any other branch preferred for deployment
 
 permissions:
   contents: read

@@ -25,14 +25,6 @@ module "lambda_sg"{
       protocol                  = "tcp"
       prefix_list_ids           = [data.aws_prefix_list.s3.id]
     }
-    egress3 = {
-      type                      = "egress"
-      description               = "Allow egress to DynamoDB"
-      from_port                 = 443
-      to_port                   = 443
-      protocol                  = "tcp"
-      prefix_list_ids           = [data.aws_prefix_list.dynamodb.id]
-    }
   }
 
   tags = var.tags
