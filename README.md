@@ -27,7 +27,27 @@ Please follow the guidelines given below to deploy the solution and then proceed
 
 ## Acronyms used in this solution
 
-**ASC** - AWS Supply Chain Service
+**ASC** - [AWS Supply Chain service](https://docs.aws.amazon.com/aws-supply-chain/latest/adminguide/getting-started.html)
+
+## Solution Concepts
+
+- **AWS Supply Chain Instance** - 
+
+1. It is a managed application provided by the [AWS Supply Chain service](https://docs.aws.amazon.com/aws-supply-chain/latest/adminguide/getting-started.html) to get insights on organisations’ Supply Chain data.
+2. It consists of various components like namespace, dataset, etc. which are used for analysis of the data.
+3. It encompasses a private instance that can be connected from within the [Amazon VPC](https://docs.aws.amazon.com/vpc/latest/userguide/what-is-amazon-vpc.html) privately. 
+
+- **AWS Supply Chain Namespace** - 
+
+1. It is the AWS Supply Chain service’s database that can be used for grouping ASC Datasets.
+2. Multiple custom namespaces can be created to store multiple ASC Datasets.
+3. By default, the service provides an **asc** namespace, which is configured to provide insights on the ingested data, that is shown in this solution.
+
+- **AWS Supply Chain Dataset** -
+
+1. It represents the individual table of a namespace that gets data stored in it from the AWS Supply Chain Staging Amazon S3 Bucket.
+2. The [AWS Supply Chain service](https://docs.aws.amazon.com/aws-supply-chain/latest/adminguide/getting-started.html) uses the datasets of the **asc** namespace to generate its pre-configured insights. 
+3. For custom datasets, we can integration [Amazon QuickSight](https://aws.amazon.com/quicksight/) to get analysis done on their data.
 
 ## Pre-Requisites
 Ensure the following are installed in your local machine 
@@ -39,26 +59,28 @@ Ensure the following are installed in your local machine
 
 Follow these steps to deploy this solution:
 
+- Have an active AWS Account
+
 - Create a VPC with 2 private subnets in your AWS Account in the region of your choice.
 
 - Setting up the deployment role used for this solution -
     1. Sufficient permissions are required for the IAM role to the following services -
-        - AWS Supply Chain service   (Full Access preferred for deploying its components like Datasets and Integration Flows, along with accessing it from the AWS Console)
-        - Amazon Chime               (For use by the AWS Supply Chain service)
-        - Amazon EventBridge         (For use by the AWS Supply Chain service)
-        - AWS KMS                    (For access to the AWS KMS keys used for the Amazon S3 Artifacts bucket and the Amazon S3 ASC Staging Bucket)
-        - Amazon S3                  (For access to the Amazon S3 Artifacts bucket, Amazon S3 Server access logging bucket, and the Amazon S3 ASC Staging bucket. If you are using manual deployment, permissions for Amazon S3 Terraform Artifacts bucket is also required)
-        - Amazon EC2                 (For Amazon EC2 Security groups and AWS VPC endpoints)
-        - AWS Lambda                 (For creating the AWS Lambda functions that deploys the AWS Supply Chain components)
-        - AWS IAM                    (For creating AWS Lambda service roles)
-        - Amazon CloudWatch          (For creating and managing Amazon CloudWatch log groups)
+        - [AWS Supply Chain service](https://docs.aws.amazon.com/aws-supply-chain/latest/adminguide/getting-started.html)   (Full Access preferred for deploying its components like Datasets and Integration Flows, along with accessing it from the AWS Console)
+        - [Amazon Chime](https://aws.amazon.com/chime/download-chime/)                                                      (For use by the AWS Supply Chain service)
+        - [Amazon EventBridge](https://aws.amazon.com/eventbridge/)                                                         (For use by the AWS Supply Chain service)
+        - [AWS KMS](https://docs.aws.amazon.com/kms/latest/developerguide/overview.html)                                    (For access to the AWS KMS keys used for the Amazon S3 Artifacts bucket and the Amazon S3 ASC Staging Bucket)
+        - [Amazon S3](https://aws.amazon.com/s3/)                                                                           (For access to the Amazon S3 Artifacts bucket, Amazon S3 Server access logging bucket, and the Amazon S3 ASC Staging bucket. If you are using manual deployment, permissions for Amazon S3 Terraform Artifacts bucket is also required)
+        - [Amazon EC2](https://aws.amazon.com/ec2/)                                                                         (For Amazon EC2 Security groups and AWS VPC endpoints)
+        - [Amazon VPC](https://docs.aws.amazon.com/vpc/latest/userguide/what-is-amazon-vpc.html)                            (For creating and managing Amazon VPC)
+        - [AWS Lambda](https://aws.amazon.com/lambda/)                                                                      (For creating the AWS Lambda functions that deploys the AWS Supply Chain components)
+        - [AWS IAM](https://aws.amazon.com/iam/)                                                                            (For creating AWS Lambda service roles)
+        - [Amazon CloudWatch](https://aws.amazon.com/cloudwatch/)                                                           (For creating and managing Amazon CloudWatch log groups)
 
     2. If you prefer to deploy through the GitHub workflows -
         - [Setup OIDC](https://docs.github.com/en/actions/how-tos/secure-your-work/security-harden-deployments/oidc-in-aws#configuring-the-role-and-trust-policy) for the IAM role with the permissions mentioned above.
         - Ensure you create an IAM role with similar permissions to access the AWS Console as well. You can refer the below step for it.
     
     3. If you prefer to do manual deployment -
-        - Ensure AWS CLI is configured in your local machine.
         - Create an IAM user to assume the IAM role with the permissions mentioned above with the help of [delegate permissions for an IAM user](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create_for-user.html).
         - [Assume the role](https://docs.aws.amazon.com/cli/v1/userguide/cli-configure-role.html) in your local terminal. 
 
@@ -114,17 +136,17 @@ Follow these steps to deploy this solution:
 
 #### Steps involved -
 1. Deploy ASC Datasets infrastructure and the Databases, through the deployment steps mentioned in [README](./ASC-Datasets/README.md). Follow the automated deployment approach using GitHub workflows.
-2. AWS VPC endpoints, AWS Security Groups, AWS KMS keys, and AWS CloudWatch log groups are created.
+2. [AWS VPC endpoints](https://docs.aws.amazon.com/vpc/latest/privatelink/create-interface-endpoint.html), [AWS Security Groups](https://docs.aws.amazon.com/vpc/latest/userguide/vpc-security-groups.html), [AWS KMS](https://docs.aws.amazon.com/kms/latest/developerguide/overview.html) keys, and [Amazon CloudWatch](https://aws.amazon.com/cloudwatch/) log groups are created.
 3. The following AWS Supply Chain resources are created -
-    - ASC Instance AWS Lambda that creates the ASC instance.
-    - ASC Namespace AWS Lambda that creates/updates/deletes the ASC namesapces.
-    - ASC Dataset AWS Lambda that creates/updates/deletes the ASC datasets.
-    - AWS Supply Chain Staging S3 bucket is created.
+    - ASC Instance [AWS Lambda](https://aws.amazon.com/lambda/) that creates the ASC instance.
+    - ASC Namespace [AWS Lambda](https://aws.amazon.com/lambda/) that creates/updates/deletes the ASC namesapces.
+    - ASC Dataset [AWS Lambda](https://aws.amazon.com/lambda/) that creates/updates/deletes the ASC datasets.
+    - AWS Supply Chain Staging [Amazon S3](https://aws.amazon.com/s3/) bucket is created.
 4. Deploy ASC Integration Flows infrastructure and the data pipelines required for it, through the deployment steps mentioned in [README](./ASC-Integration-Flows/README.md). Follow the automated deployment approach using GitHub workflows.
-    - ASC Integration Flows AWS Lambda that creates/updates/deletes the integration flows.
-5. Source data can now be ingested to the AWS Supply Chain Staging S3 bucket. Some of the [preferred methods](#secure-data-ingestion-from-source-systems-to-amazon-s3) and the [data ingestion for this solution](#upload-sample-data-for-the-datasets) is mentioned below.
-6. Once any data lands on the AWS Supply Chain staging bucket, the service automatically triggers the integration flow which was created in this solution, to the ASC Datasets.
-7. The AWS Supply Chain service integrates with Amazon QuickSight Analytics to produce dashboards based on the ingested data.
+    - ASC Integration Flows [AWS Lambda](https://aws.amazon.com/lambda/) that creates/updates/deletes the integration flows.
+5. Source data can now be ingested to the AWS Supply Chain Staging [Amazon S3](https://aws.amazon.com/s3/) bucket. Some of the [preferred methods](#secure-data-ingestion-from-source-systems-to-amazon-s3) and the [data ingestion for this solution](#upload-sample-data-for-the-datasets) is mentioned below.
+6. Once any data lands on the AWS Supply Chain staging [Amazon S3](https://aws.amazon.com/s3/) bucket, the service automatically triggers the integration flow which was created in this solution, to the ASC Datasets.
+7. The AWS Supply Chain service integrates with [Amazon QuickSight](https://aws.amazon.com/quicksight/) Analytics to produce dashboards based on the ingested data.
 
 ### Manual deployment through Terraform
 ![ASC Deployment Flow through Terraform](./Images/Architecture%20Manual.png)
@@ -134,48 +156,42 @@ Follow these steps to deploy this solution:
 
 #### Steps involved -
 1. Deploy ASC Datasets infrastructure and the Databases, through the deployment steps mentioned in [README](./ASC-Datasets/README.md). Follow the manual deployment approach from your local machine using Terraform.
-2. AWS VPC endpoints, AWS Security Groups, AWS KMS keys, and AWS CloudWatch log groups are created.
+2. [AWS VPC endpoints](https://docs.aws.amazon.com/vpc/latest/privatelink/create-interface-endpoint.html), [AWS Security Groups](https://docs.aws.amazon.com/vpc/latest/userguide/vpc-security-groups.html), [AWS KMS](https://docs.aws.amazon.com/kms/latest/developerguide/overview.html) keys, and [Amazon CloudWatch](https://aws.amazon.com/cloudwatch/) log groups are created.
 3. The following AWS Supply Chain resources are created -
-    - ASC Instance AWS Lambda that creates the ASC instance.
-    - ASC Namespace AWS Lambda that creates/updates/deletes the ASC namesapces.
-    - ASC Dataset AWS Lambda that creates/updates/deletes the ASC datasets.
-    - AWS Supply Chain Staging S3 bucket is created.
+    - ASC Instance [AWS Lambda](https://aws.amazon.com/lambda/) that creates the ASC instance.
+    - ASC Namespace [AWS Lambda](https://aws.amazon.com/lambda/) that creates/updates/deletes the ASC namesapces.
+    - ASC Dataset [AWS Lambda](https://aws.amazon.com/lambda/) that creates/updates/deletes the ASC datasets.
+    - AWS Supply Chain Staging [Amazon S3](https://aws.amazon.com/s3/) bucket is created.
 4. Deploy ASC Integration Flows infrastructure and the data pipelines required for it, through the deployment steps mentioned in [README](./ASC-Integration-Flows/README.md). Follow the manual deployment approach from your local machine using Terraform.
-    - ASC Integration Flows AWS Lambda that creates/updates/deletes the integration flows.
-5. Source data can now be ingested to the AWS Supply Chain Staging S3 bucket. Some of the [preferred methods](#secure-data-ingestion-from-source-systems-to-amazon-s3) and the [data ingestion for this solution](#upload-sample-data-for-the-datasets) is mentioned below.
-6. Once any data lands on the AWS Supply Chain staging bucket, the service automatically triggers the integration flow which was created in this solution, to the ASC Datasets.
-7. The AWS Supply Chain service integrates with Amazon QuickSight Analytics to produce dashboards based on the ingested data.
+    - ASC Integration Flows [AWS Lambda](https://aws.amazon.com/lambda/) that creates/updates/deletes the integration flows.
+5. Source data can now be ingested to the AWS Supply Chain Staging [Amazon S3](https://aws.amazon.com/s3/) bucket. Some of the [preferred methods](#secure-data-ingestion-from-source-systems-to-amazon-s3) and the [data ingestion for this solution](#upload-sample-data-for-the-datasets) is mentioned below.
+6. Once any data lands on the AWS Supply Chain staging [Amazon S3](https://aws.amazon.com/s3/) bucket, the service automatically triggers the integration flow which was created in this solution, to the ASC Datasets.
+7. The AWS Supply Chain service integrates with [Amazon QuickSight](https://aws.amazon.com/quicksight/) Analytics to produce dashboards based on the ingested data.
 
 ## Secure Data Ingestion from Source Systems to Amazon S3
 
 Before data can be automatically ingested into AWS Supply Chain, source data needs to be sent to the AWS Supply Chain S3 staging bucket.
 In this solution, we have demonstrated direct upload of sample datasets to the AWS Supply Chain Staging S3 Bucket. While, in a complete implementation, the following may be preferred.
 
-### A popular and secure option is to use real-time Data Streaming with Amazon Kinesis Data Firehose
+1. Source system is in an AWS environment
 
-**Setup Process:**
-1. Create a Amazon Kinesis Data Firehose delivery stream targeting the AWS Supply Chain S3 bucket.
-2. Configure delivery stream with appropriate prefixes (calendar-data/, outbound-order-line-data/).
-3. Set up AWS IAM roles with minimal permissions for Amazon Data Firehose to write to Amazon S3 ASC Staging Bucket, along with permissions for their AWS KMS keys.
-4. Configure your organizations' source environment to send data records to the Amazon Firehose stream.
+- A dedicated AWS IAM role is used for providing access to the AWS Supply Chain staging [Amazon S3](https://aws.amazon.com/s3/) bucket and the [AWS KMS](https://docs.aws.amazon.com/kms/latest/developerguide/overview.html) key used by it.
+- The AWS Supply Chain staging [Amazon S3](https://aws.amazon.com/s3/) bucket policy should allow access for the source system's AWS IAM role.
+- The [AWS KMS](https://docs.aws.amazon.com/kms/latest/developerguide/overview.html) key used by the AWS Supply Chain service should allow access for the source system's IAM role in its key policy.
+- The server that is writing to the AWS Supply Chain staging [Amazon S3](https://aws.amazon.com/s3/) bucket should be present inside an [Amazon VPC](https://docs.aws.amazon.com/vpc/latest/userguide/what-is-amazon-vpc.html).
+- The data transfer should go through AWS private network with the help of a [Amazon VPC Gateway Endpoint](https://docs.aws.amazon.com/vpc/latest/privatelink/gateway-endpoints.html) to [Amazon S3](https://aws.amazon.com/s3/).
 
-**Security Features:**
-- **Encryption in Transit**: All data sent to Firehose is encrypted using HTTPS/TLS.
-- **Encryption at Rest**: Configure AWS KMS encryption for Amazon S3 delivery using the AWS KMS ASC staging key that was created by this solution.
-- **Access Control**: Use AWS IAM roles with least-privilege permissions for Firehose delivery.
-- **Data Transformation**: Optional Lambda functions can validate and transform data before Amazon S3 delivery.
-- **Monitoring**: Amazon CloudWatch metrics and logs for delivery success/failure tracking.
+2. Source system is outside the AWS environment
 
-**Benefits:**
-- Built-in data compression and format conversion.
-- Handles high-volume streaming data with automatic scaling.
-- No infrastructure management required.
-- Fault tolerance with automatic retries.
+- A dedicated AWS IAM role is used for providing access to the AWS Supply Chain staging [Amazon S3](https://aws.amazon.com/s3/) bucket and the [AWS KMS](https://docs.aws.amazon.com/kms/latest/developerguide/overview.html) key used by it.
+- The AWS Supply Chain staging [Amazon S3](https://aws.amazon.com/s3/) bucket policy should allow access for the source system's AWS IAM role.
+- The [AWS KMS](https://docs.aws.amazon.com/kms/latest/developerguide/overview.html) key used by the AWS Supply Chain service should allow access for the source system's IAM role in its key policy.
+- The data transfer goes through the public network to the [Amazon S3](https://aws.amazon.com/s3/) endpoint.
 
 ## Upload Sample data for the datasets
 
 - Based on the datasets that we created, [Calendar](./ASC-Datasets/dataset-schemas/calendar.json) and [Outbound Order Line](./ASC-Datasets/dataset-schemas/outbound_order_line.json), create sample CSV files for them with varied data.
-- Fetch the AWS Supply Chain **Instance ID** from the terraform outputs of the [asc_instance_id](./ASC-Datasets/terraform-deployment/output.tf) directory.
+- Fetch the AWS Supply Chain Instance ID **asc_instance_id** from the [terraform outputs](./ASC-Datasets/terraform-deployment/output.tf) directory.
 - Note down the S3 bucket name for AWS Supply Chain that got created through our deployment - **aws-supply-chain-data-<Instance_ID>**.
 
 **Upload using AWS CLI:**
@@ -203,7 +219,7 @@ aws s3 cp outbound_order_line_sample.csv s3://aws-supply-chain-data-<Instance_ID
 
 2. In this solution, we have demonstrated the creation of **Calendar** and **Outbound_Order_Line** datasets. We will create an Analysis that uses these datasets.
 
-3. AWS Supply Chain provides a prebuilt dashboard for analying the mentioned datasets. We will use the **Seasonability Analysis** Dashboard. Follow the steps mentioned in this [AWS guide](https://docs.aws.amazon.com/aws-supply-chain/latest/userguide/prebuilt_dashboards.html) to add the dashboard.
+3. AWS Supply Chain provides a prebuilt dashboard for analysing the mentioned datasets. We will use the **Seasonability Analysis** Dashboard. Follow the steps mentioned in this [AWS guide](https://docs.aws.amazon.com/aws-supply-chain/latest/userguide/prebuilt_dashboards.html) to add the dashboard.
 
 4. Click on the dashboard to see its analysis that would look like this (Based on sample CSV files for Calendar data and Outbound Order Line data) - 
 
@@ -222,7 +238,15 @@ aws s3 cp outbound_order_line_sample.csv s3://aws-supply-chain-data-<Instance_ID
 ![Amazon Q in AWS Supply Chain](./Images/Amazon%20Q%20in%20AWS%20Supply%20Chain.png)
 </div>
 
-This solution can be replicated for more datasets as per the requirements and be queried for further analysis, through AWS Supply Chain provided prebuilt-dashboards or cutom integration with Amazon QuickSight.
+This solution can be replicated for more datasets as per the requirements and be queried for further analysis, through AWS Supply Chain provided prebuilt-dashboards or custom integration with Amazon QuickSight.
+
+## Limitations of this Solution
+
+- The [AWS Supply Chain Instance](https://docs.aws.amazon.com/aws-supply-chain/latest/adminguide/getting-started.html) doesn’t support complex data transformation techniques as of now.
+
+- The service’s usage is most suited for Supply Chain domains as it provides in-built analytics and insights for it. For any other domain, it can still be used as a data store as part of the data lake architecture.
+
+- [AWS Lambda](https://aws.amazon.com/lambda/) functions used in this solution may need to be enhanced to handle API retries and memory management in a production scale deployment.
 
 ## Security
 See [CONTRIBUTING](./CONTRIBUTING.md) for more information.
