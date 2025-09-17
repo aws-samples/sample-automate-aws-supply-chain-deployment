@@ -29,8 +29,6 @@ This folder is a standalone repository that deploys ASC integration flows. It us
 
 ### Pre-Requisites
 
-Ensure **Git CLI** is installed in your local machine.
-
 #### Setup of the GitHub repo
 
 1. Clone this repository to your local machine.
@@ -175,8 +173,8 @@ aws sts assume-role --role-arn <enter AWS user role ARN> --role-session-name <yo
 ```bash
 # Export Environment variables
 export REGION=<Enter deployment region>
-export REPO_NAME=<Enter Current ASC Integration Flows repo name or the directory name>
-export ASC_DATASET_VARS_REPO=<Enter Current ASC Datasets repo name or the directory name>  #Must be the same repo/directory name used for ASC Datasets deployment
+export REPO_NAME=<Enter Current ASC Integration Flows dir name>
+export ASC_DATASET_VARS_REPO=<Enter Current ASC Datasets dir name>  #Must be the same dir name used for ASC Datasets deployment
 export PROJECT_NAME="asc-deployment-poc"
 export ACCOUNT_ID=<Enter deployment Account ID>
 export ENVIRONMENT="dev"
@@ -267,8 +265,8 @@ aws sts assume-role --role-arn <enter AWS user role ARN> --role-session-name <yo
 ```bash
 # Export Environment variables
 export REGION=<Enter deployment region>
-export REPO_NAME=<Enter Current ASC Integration Flows repo name>
-export ASC_DATASET_VARS_REPO=<Enter Current ASC Datasets repo name>  #Must be the same repo name used for ASC Datasets deployment
+export REPO_NAME=<Enter Current ASC Integration Flows dir name>
+export ASC_DATASET_VARS_REPO=<Enter Current ASC Datasets dir name>  #Must be the same dir name used for ASC Datasets deployment
 export PROJECT_NAME="asc-deployment-poc"
 export ACCOUNT_ID=<Enter deployment Account ID>
 export ENVIRONMENT="dev"

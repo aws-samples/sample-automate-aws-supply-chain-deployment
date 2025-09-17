@@ -10,7 +10,7 @@ This folder is a standalone repository that deploys ASC Instance and Datasets. I
     * [Setup of the GitHub repository](#setup-of-the-github-repo)
     * [Setup GitHub environments](#setup-github-environments)
     * [Setup environment values in the workflow files](#setup-environment-values-in-the-workflow-files)
-      * [ASC Integration flows](#asc-integration-flowsyml)
+      * [ASC Datasets flows](#asc-datasetsyml)
       * [Destroy workflow](#destroy-workflowyml)
   * [Workflow Steps](#workflow-steps)
     * [Deployment Workflow](#deployment-workflow)
@@ -29,8 +29,6 @@ This folder is a standalone repository that deploys ASC Instance and Datasets. I
 
 ### Pre-Requisites
 
-Ensure **Git CLI** is installed in your local machine.
-
 #### Setup of the GitHub repo
 
 1. Clone this repository to your local machine.
@@ -45,7 +43,7 @@ cp -r ASC-Datasets ../ASC-Datasets-standalone
 cd ../ASC-Datasets-standalone
 ```
 
-3. Setup [ASC-Datasets](../ASC-Datasets/) as a standalone reposoitory in your GitHub organization.
+3. Setup [ASC-Datasets](../ASC-Datasets/) as a standalone repository in your GitHub organization.
 ```bash
 git init
 git add .
@@ -70,7 +68,7 @@ This is used for isolating the deployments to the specific environments with spe
 2. For each branch used for deployment, create an [approval environment](https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/manage-environments) with its name and add the required approvers. Eg: dev branch would have dev-approval environment
 
 #### Setup environment values in the workflow files
-##### [asc-integration-flows.yml](.github/workflows/asc-datasets.yml)
+##### [asc-datasets.yml](.github/workflows/asc-datasets.yml)
 
 -   The following environment values are configured in the workflow file:
 
@@ -176,7 +174,7 @@ aws sts assume-role --role-arn <enter AWS user role ARN> --role-session-name <yo
 ```bash
 # Export Environment variables
 export REGION=<Enter deployment region>
-export REPO_NAME=<Enter Current ASC Datasets repo name or directory name>
+export REPO_NAME=<Enter Current ASC Datasets dir name>
 export PROJECT_NAME="asc-deployment-poc"
 export ACCOUNT_ID=<Enter deployment Account ID>
 export ENVIRONMENT="dev"
@@ -279,7 +277,7 @@ aws sts assume-role --role-arn <enter AWS user role ARN> --role-session-name <yo
 ```bash
 # Export Environment variables
 export REGION=<Enter deployment region>
-export REPO_NAME=<Enter Current ASC Datasets repo name>
+export REPO_NAME=<Enter Current ASC Datasets dir name>
 export PROJECT_NAME="asc-deployment-poc"
 export ACCOUNT_ID=<Enter deployment Account ID>
 export ENVIRONMENT="dev"
