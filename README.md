@@ -138,7 +138,7 @@ Follow these steps to deploy this solution:
 1. Deploy ASC Datasets infrastructure and the Databases, through the deployment steps mentioned in [README](./ASC-Datasets/README.md). Follow the automated deployment approach using GitHub workflows.
 2. [AWS VPC endpoints](https://docs.aws.amazon.com/vpc/latest/privatelink/create-interface-endpoint.html), [AWS Security Groups](https://docs.aws.amazon.com/vpc/latest/userguide/vpc-security-groups.html), [AWS KMS](https://docs.aws.amazon.com/kms/latest/developerguide/overview.html) keys, and [Amazon CloudWatch](https://aws.amazon.com/cloudwatch/) log groups are created.
 3. The following AWS Supply Chain resources are created -
-    - ASC Instance [AWS Lambda](https://aws.amazon.com/lambda/) that creates the ASC instance.
+    - ASC Instance [AWS Lambda](https://aws.amazon.com/lambda/) that creates/updates/deletes the ASC instance.
     - ASC Namespace [AWS Lambda](https://aws.amazon.com/lambda/) that creates/updates/deletes the ASC namesapces.
     - ASC Dataset [AWS Lambda](https://aws.amazon.com/lambda/) that creates/updates/deletes the ASC datasets.
     - AWS Supply Chain Staging [Amazon S3](https://aws.amazon.com/s3/) bucket is created.
@@ -158,7 +158,7 @@ Follow these steps to deploy this solution:
 1. Deploy ASC Datasets infrastructure and the Databases, through the deployment steps mentioned in [README](./ASC-Datasets/README.md). Follow the manual deployment approach from your local machine using Terraform.
 2. [AWS VPC endpoints](https://docs.aws.amazon.com/vpc/latest/privatelink/create-interface-endpoint.html), [AWS Security Groups](https://docs.aws.amazon.com/vpc/latest/userguide/vpc-security-groups.html), [AWS KMS](https://docs.aws.amazon.com/kms/latest/developerguide/overview.html) keys, and [Amazon CloudWatch](https://aws.amazon.com/cloudwatch/) log groups are created.
 3. The following AWS Supply Chain resources are created -
-    - ASC Instance [AWS Lambda](https://aws.amazon.com/lambda/) that creates the ASC instance.
+    - ASC Instance [AWS Lambda](https://aws.amazon.com/lambda/) that creates/updates/deletes the ASC instance.
     - ASC Namespace [AWS Lambda](https://aws.amazon.com/lambda/) that creates/updates/deletes the ASC namesapces.
     - ASC Dataset [AWS Lambda](https://aws.amazon.com/lambda/) that creates/updates/deletes the ASC datasets.
     - AWS Supply Chain Staging [Amazon S3](https://aws.amazon.com/s3/) bucket is created.
