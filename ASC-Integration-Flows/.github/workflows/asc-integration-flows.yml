@@ -1,0 +1,218 @@
+# Software (software, scripts or sample code) is licensed under the Apache License, Version 2.0.
+# Author: AWS Professional Services
+
+name: Deployment workflow
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - dev     #Change to any other branch preferred for deployment
+
+permissions:
+  contents: read
+  id-token: write
+  pull-requests: write
+  checks: write
+  issues: write
+  actions: read
+
+env:
+  PROJECT_NAME: "asc-deployment"
+  REGION: "us-east-1"
+  REPO_NAME: "<Current ASC Integration Flows repo name>"    #To be filled.
+  ASC_DATASET_VARS_REPO: "<ASC Datasets repo name>"    #To be filled.
+  JFROG_PROJECT_KEY: "<JFrog Project Key name>"    #To be filled.
+  JFROG_ARTIFACTS_REPO: "<JFrog Artifacts repo name>"    #To be filled.
+  ENVIRONMENT: ${{ github.ref_name == 'main' && 'prod' || github.ref_name }}
+  LAMBDA_LAYER_TEMP_DIR_TERRAFORM: "layerOutput"
+  LAMBDA_FUNCTION_TEMP_DIR_TERRAFORM: "lambdaOutput"
+  ACCOUNT_ID: ${{ 
+    github.ref_name == 'main' && secrets.ACCOUNT_ID_PROD ||
+    github.ref_name == 'dev' && secrets.ACCOUNT_ID_DEV }}
+  AWS_ROLE: ${{ 
+    github.ref_name == 'main' && secrets.AWS_ROLE_PROD ||
+    github.ref_name == 'dev' && secrets.AWS_ROLE_DEV }}
+
+jobs:
+  terraform-validate-and-plan:
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref_name == 'main' && 'prod' || github.ref_name }}
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ github.workspace }}/terraform-deployment
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          audience: sts.amazonaws.com
+          aws-region: ${{ env.REGION }}
+          role-to-assume: ${{ env.AWS_ROLE }}
+      
+      - name: Setup Terraform latest version
+        uses: hashicorp/setup-terraform@v3
+      
+      - name: JFrog Login
+        uses: jfrog/setup-jfrog-cli@v4
+        env: 
+            JF_URL: ${{ secrets.ARTIFACTORY_HOST }}
+            JF_USER: ${{ secrets.ARTIFACTORY_USERNAME }}
+            JF_ACCESS_TOKEN: ${{ secrets.ARTIFACTORY_ACCESS_TOKEN }}
+            JF_PROJECT: ${{ env.JFROG_PROJECT_KEY }}
+
+      - name: Terraform backend and providers setup
+        run: |
+          chmod +x ../scripts/generate-terraform-config.sh
+          ../scripts/generate-terraform-config.sh
+      
+      - name: Terraform init and validate
+        run: |
+          terraform init
+          terraform validate
+      
+      - name: Download and merge ASC DATASET tfvars
+        run: |
+          chmod +x ../scripts/download-vars-through-jfrog.sh
+          ../scripts/download-vars-through-jfrog.sh ${{ env.ASC_DATASET_VARS_REPO }}
+        
+      - name: Terraform plan
+        run: |
+          terraform plan \
+          -var-file="tfInputs/${{ env.ENVIRONMENT }}.tfvars" \
+          -var="project_name=${{ env.PROJECT_NAME }}" \
+          -var="environment=${{ env.ENVIRONMENT }}" \
+          -var="lambda_temp_dir=${{ env.LAMBDA_FUNCTION_TEMP_DIR_TERRAFORM }}" \
+          -var="layer_temp_dir=${{ env.LAMBDA_LAYER_TEMP_DIR_TERRAFORM }}" \
+          -parallelism=40 \
+          -out='tfplan.out'
+
+      - name: Upload terraform artifacts
+        run: |
+          echo Creating terraform directory
+          mkdir -p terraform-artifacts
+
+          mv tfplan.out terraform-artifacts/
+          if [ -d ${{ env.LAMBDA_FUNCTION_TEMP_DIR_TERRAFORM }} ]; then
+            mv ${{ env.LAMBDA_FUNCTION_TEMP_DIR_TERRAFORM }} terraform-artifacts/
+          fi
+          if [ -d ${{ env.LAMBDA_LAYER_TEMP_DIR_TERRAFORM }} ]; then
+            mv ${{ env.LAMBDA_LAYER_TEMP_DIR_TERRAFORM }} terraform-artifacts/
+          fi
+
+          jf rt upload \
+            --flat=false \
+            --recursive=true \
+            --target-props="version=${{ github.run_number }}" \
+            "terraform-artifacts/*" \
+            "${{ env.JFROG_ARTIFACTS_REPO }}/${{ env.REPO_NAME }}/${{ env.ENVIRONMENT }}/plan-artifacts/${{ github.run_number }}/"
+          
+          rm -rf terraform-artifacts
+          
+      - name: Set Latest Version Property
+        run: |
+          jf rt set-props \
+            "${{ env.JFROG_ARTIFACTS_REPO }}/${{ env.REPO_NAME }}/${{ env.ENVIRONMENT }}/plan-artifacts/${{ github.run_number }}/*" \
+            "latest=true"
+
+  APPROVE-APPLY:
+    needs: [ terraform-validate-and-plan ]
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref_name == 'main' && 'prod' || github.ref_name }}-approval
+
+    steps:
+      - name: Approval
+        run: |
+          echo "⚠️ WARNING!!!!!!"
+          echo "-------------------------------------------"
+          echo "This will deploy the terraform planned resources in the ${{ github.ref_name == 'main' && 'prod' || github.ref_name }} environment"
+          echo "-------------------------------------------"
+  
+  terraform-apply-plan:
+    needs: [ APPROVE-APPLY ]
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref_name == 'main' && 'prod' || github.ref_name }}
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ github.workspace }}/terraform-deployment
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          audience: sts.amazonaws.com
+          aws-region: ${{ env.REGION }}
+          role-to-assume: ${{ env.AWS_ROLE }}
+      
+      - name: Setup Terraform latest version
+        uses: hashicorp/setup-terraform@v3
+      
+      - name: Setup Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: JFrog Login
+        uses: jfrog/setup-jfrog-cli@v4
+        env: 
+            JF_URL: ${{ secrets.ARTIFACTORY_HOST }}
+            JF_USER: ${{ secrets.ARTIFACTORY_USERNAME }}
+            JF_ACCESS_TOKEN: ${{ secrets.ARTIFACTORY_ACCESS_TOKEN }}
+            JF_PROJECT: ${{ env.JFROG_PROJECT_KEY }}
+            
+      - name: Download this workflow build's terraform plan
+        run: |
+          jf rt download \
+            --flat=false \
+            --recursive=true \
+            "${{ env.JFROG_ARTIFACTS_REPO }}/${{ env.REPO_NAME }}/${{ env.ENVIRONMENT }}/plan-artifacts/${{ github.run_number }}/" \
+            "./"
+            mv ${{ env.REPO_NAME }}/${{ env.ENVIRONMENT }}/plan-artifacts/${{ github.run_number }}/terraform-artifacts/* ./
+            rm -rf ${{ env.REPO_NAME }}
+      
+      - name: Terraform backend and providers setup
+        run: |
+          chmod +x ../scripts/generate-terraform-config.sh
+          ../scripts/generate-terraform-config.sh
+      
+      - name: Terraform init and apply resources
+        run: |
+          terraform init
+          terraform apply --auto-approve 'tfplan.out'
+      
+      - name: Update KMS policy with IAM roles
+        run: |
+          chmod +x ../scripts/update-kms-policy-through-jfrog.sh
+          ../scripts/update-kms-policy-through-jfrog.sh ${{ env.ASC_DATASET_VARS_REPO }}
+      
+      - name: Create reusable variables file from outputs
+        run: |
+          terraform output -json > raw_output.json
+          jq -r 'to_entries | map(
+            if .value.type == "string" then
+              "\(.key) = \"\(.value.value)\""
+            else
+              "\(.key) = \(.value.value | tojson)"
+            end
+          ) | .[]' raw_output.json > ${{ env.REPO_NAME }}-outputs.tfvars
+      
+      - name: Upload terraform artifacts
+        run: |
+          jf rt upload \
+            --flat=false \
+            --recursive=true \
+            --target-props="version=${{ github.run_number }}" \
+            "${{ env.REPO_NAME }}-outputs.tfvars" \
+            "${{ env.JFROG_ARTIFACTS_REPO }}/${{ env.REPO_NAME }}/${{ env.ENVIRONMENT }}/reusable-outputs/"
+
+          rm -f raw_output.json
+          rm -f ${{ env.REPO_NAME }}-outputs.tfvars
