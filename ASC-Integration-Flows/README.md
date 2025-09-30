@@ -1,4 +1,6 @@
-# This folder is a standalone repository that deploys ASC integration flows. It uses Hashicorp Terraform and python for deployment.
+# This directory can be used as a standalone repository that deploys AWS Supply Chain Integration Flows
+
+We have shown its deployment using HashiCorp Terraform and Python.
 
 ## Contents
 
