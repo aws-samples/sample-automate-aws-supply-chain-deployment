@@ -14,9 +14,68 @@ data "aws_route_table" "private" {
 
 data "aws_iam_policy_document" "kms_policy" {
   statement {
+    #checkov:skip=CKV_AWS_109:KMS key policy — Resource "*" refers to this key only
+    #checkov:skip=CKV_AWS_111:KMS key policy — Resource "*" refers to this key only
+    #checkov:skip=CKV_AWS_356:KMS key policy — Resource "*" refers to this key only
     sid = "Enable IAM User Permissions"
     actions = [
-      "kms:*"
+      "kms:CancelKeyDeletion",
+      "kms:ConnectCustomKeyStore",
+      "kms:CreateAlias",
+      "kms:CreateCustomKeyStore",
+      "kms:CreateGrant",
+      "kms:CreateKey",
+      "kms:Decapsulate",
+      "kms:Decrypt",
+      "kms:DeleteAlias",
+      "kms:DeleteCustomKeyStore",
+      "kms:DeleteImportedKeyMaterial",
+      "kms:DeriveSharedSecret",
+      "kms:DescribeCustomKeyStores",
+      "kms:DescribeKey",
+      "kms:DisableKey",
+      "kms:DisableKeyRotation",
+      "kms:DisconnectCustomKeyStore",
+      "kms:EnableKey",
+      "kms:EnableKeyRotation",
+      "kms:Encapsulate",
+      "kms:Encrypt",
+      "kms:GenerateDataKey",
+      "kms:GenerateDataKeyPair",
+      "kms:GenerateDataKeyPairWithoutPlaintext",
+      "kms:GenerateDataKeyWithoutPlaintext",
+      "kms:GenerateMac",
+      "kms:GenerateRandom",
+      "kms:GetKeyLastUsage",
+      "kms:GetKeyPolicy",
+      "kms:GetKeyRotationStatus",
+      "kms:GetParametersForImport",
+      "kms:GetPublicKey",
+      "kms:ImportKeyMaterial",
+      "kms:ListAliases",
+      "kms:ListGrants",
+      "kms:ListKeyPolicies",
+      "kms:ListKeyRotations",
+      "kms:ListKeys",
+      "kms:ListResourceTags",
+      "kms:ListRetirableGrants",
+      "kms:PutKeyPolicy",
+      "kms:ReEncryptFrom",
+      "kms:ReEncryptTo",
+      "kms:ReplicateKey",
+      "kms:RetireGrant",
+      "kms:RevokeGrant",
+      "kms:RotateKeyOnDemand",
+      "kms:ScheduleKeyDeletion",
+      "kms:Sign",
+      "kms:TagResource",
+      "kms:UntagResource",
+      "kms:UpdateAlias",
+      "kms:UpdateCustomKeyStore",
+      "kms:UpdateKeyDescription",
+      "kms:UpdatePrimaryRegion",
+      "kms:Verify",
+      "kms:VerifyMac"
     ]
     resources = [
       "*"
@@ -155,29 +214,3 @@ data "aws_iam_policy_document" "kms_policy_document_asc" {
   }
 }
 
-data "aws_iam_policy_document" "chime_policy_document_asc" {
-  statement {
-    actions = [
-      "chime:CreateAppInstance",
-      "chime:DeleteAppInstance",
-      "chime:PutAppInstanceRetentionSettings",
-      "chime:TagResource"
-    ]
-    resources = [
-      "*"
-    ]
-  }
-}
-
-data "aws_iam_policy_document" "event_rule_policy_document_asc" {
-  statement {
-    actions = [
-      "events:DescribeRule",
-			"events:PutRule",
-			"events:PutTargets"
-    ]
-    resources = [
-      "*"
-    ]
-  }
-}

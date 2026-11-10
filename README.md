@@ -63,17 +63,149 @@ Follow these steps to deploy this solution:
 - Create a VPC with 2 private subnets in your AWS Account in the region of your choice.
 
 - Setting up the deployment role used for this solution -
-    1. Sufficient permissions are required for the IAM role to the following services -
-        - [AWS Supply Chain service](https://docs.aws.amazon.com/aws-supply-chain/latest/adminguide/getting-started.html)   (Full Access preferred for deploying its components like Datasets and Integration Flows, along with accessing it from the AWS Console)
-        - [Amazon Chime](https://aws.amazon.com/chime/download-chime/)                                                      (For use by the AWS Supply Chain service)
-        - [Amazon EventBridge](https://aws.amazon.com/eventbridge/)                                                         (For use by the AWS Supply Chain service)
-        - [AWS KMS](https://docs.aws.amazon.com/kms/latest/developerguide/overview.html)                                    (For access to the AWS KMS keys used for the Amazon S3 Artifacts bucket and the Amazon S3 ASC Staging Bucket)
-        - [Amazon S3](https://aws.amazon.com/s3/)                                                                           (For access to the Amazon S3 Artifacts bucket, Amazon S3 Server access logging bucket, and the Amazon S3 ASC Staging bucket. If you are using manual deployment, permissions for Amazon S3 Terraform Artifacts bucket is also required)
-        - [Amazon EC2](https://aws.amazon.com/ec2/)                                                                         (For Amazon EC2 Security groups and AWS VPC endpoints)
-        - [Amazon VPC](https://docs.aws.amazon.com/vpc/latest/userguide/what-is-amazon-vpc.html)                            (For creating and managing Amazon VPC)
-        - [AWS Lambda](https://aws.amazon.com/lambda/)                                                                      (For creating the AWS Lambda functions that deploys the AWS Supply Chain components)
-        - [AWS IAM](https://aws.amazon.com/iam/)                                                                            (For creating AWS Lambda service roles)
-        - [Amazon CloudWatch](https://aws.amazon.com/cloudwatch/)                                                           (For creating and managing Amazon CloudWatch log groups)
+    1. The deployment IAM role must have a **scoped** permission set — not "Full Access" on whole services. Grant only the actions below, restricted to this project's resource ARNs. Replace `<ACCOUNT_ID>`, `<REGION>`, and `<PROJECT_NAME>` (defaults to `asc-deployment`) with your own values. A ready-to-use example policy follows the table.
+
+        | Service | Why it is needed | Scope |
+        |---|---|---|
+        | [AWS Supply Chain](https://docs.aws.amazon.com/aws-supply-chain/latest/adminguide/getting-started.html) | Create / manage the ASC instance, namespaces, datasets, and integration flows | `arn:aws:scn:<REGION>:<ACCOUNT_ID>:instance/*` |
+        | [AWS KMS](https://docs.aws.amazon.com/kms/latest/developerguide/overview.html) | Create and manage the two project KMS keys (artifacts bucket, ASC staging bucket) | `arn:aws:kms:<REGION>:<ACCOUNT_ID>:key/*` with condition `kms:ResourceAliases` matching `alias/<PROJECT_NAME>-kms-*` |
+        | [Amazon S3](https://aws.amazon.com/s3/) | Create and manage the Artifacts, Server-Access-Logs, and ASC Staging buckets (and the Terraform state bucket for manual deployment) | `arn:aws:s3:::<PROJECT_NAME>-<ACCOUNT_ID>-<REGION>-*` and `arn:aws:s3:::aws-supply-chain-*` |
+        | [AWS Lambda](https://aws.amazon.com/lambda/) | Create the deployer Lambda functions | `arn:aws:lambda:<REGION>:<ACCOUNT_ID>:function:<PROJECT_NAME>-*` |
+        | [AWS IAM](https://aws.amazon.com/iam/) | Create the Lambda execution roles and their inline/managed policies | `arn:aws:iam::<ACCOUNT_ID>:role/<PROJECT_NAME>-*`, `arn:aws:iam::<ACCOUNT_ID>:policy/<PROJECT_NAME>-*` |
+        | [Amazon EC2 / VPC](https://docs.aws.amazon.com/vpc/latest/userguide/what-is-amazon-vpc.html) | Manage security groups and VPC interface endpoints inside the pre-created VPC (the VPC itself is created by you — the role does **not** need `ec2:CreateVpc`) | Resource-level ARNs for `security-group/*` and `vpc-endpoint/*`; `ec2:Describe*` on `*` |
+        | [Amazon CloudWatch Logs](https://aws.amazon.com/cloudwatch/) | Create and manage project log groups | `arn:aws:logs:<REGION>:<ACCOUNT_ID>:log-group:/aws/lambda/<PROJECT_NAME>-*:*` |
+
+        <details>
+        <summary>Example scoped deployment-role policy (click to expand)</summary>
+
+        ```json
+        {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "SupplyChain",
+              "Effect": "Allow",
+              "Action": [
+                "scn:CreateInstance", "scn:DescribeInstance", "scn:GetInstance",
+                "scn:ListInstances", "scn:UpdateInstance",
+                "scn:CreateDataLakeDataset", "scn:GetDataLakeDataset",
+                "scn:ListDataLakeDatasets", "scn:UpdateDataLakeDataset", "scn:DeleteDataLakeDataset",
+                "scn:CreateDataLakeNamespace", "scn:GetDataLakeNamespace",
+                "scn:ListDataLakeNamespaces", "scn:UpdateDataLakeNamespace", "scn:DeleteDataLakeNamespace",
+                "scn:TagResource", "scn:UntagResource"
+              ],
+              "Resource": "arn:aws:scn:<REGION>:<ACCOUNT_ID>:instance/*"
+            },
+            {
+              "Sid": "S3Project",
+              "Effect": "Allow",
+              "Action": [
+                "s3:CreateBucket", "s3:DeleteBucket", "s3:ListBucket", "s3:GetBucket*",
+                "s3:PutBucketPolicy", "s3:PutBucketVersioning", "s3:PutBucketTagging",
+                "s3:PutBucketLogging", "s3:PutBucketNotification", "s3:PutBucketOwnershipControls",
+                "s3:PutBucketPublicAccessBlock", "s3:PutBucketObjectLockConfiguration",
+                "s3:PutLifecycleConfiguration", "s3:PutEncryptionConfiguration",
+                "s3:GetObject", "s3:PutObject", "s3:DeleteObject", "s3:ListAllMyBuckets"
+              ],
+              "Resource": [
+                "arn:aws:s3:::<PROJECT_NAME>-<ACCOUNT_ID>-<REGION>-*",
+                "arn:aws:s3:::<PROJECT_NAME>-<ACCOUNT_ID>-<REGION>-*/*",
+                "arn:aws:s3:::aws-supply-chain-*",
+                "arn:aws:s3:::aws-supply-chain-*/*"
+              ]
+            },
+            {
+              "Sid": "KMSProject",
+              "Effect": "Allow",
+              "Action": [
+                "kms:CreateKey", "kms:CreateAlias", "kms:DeleteAlias",
+                "kms:DescribeKey", "kms:EnableKey", "kms:DisableKey",
+                "kms:EnableKeyRotation", "kms:DisableKeyRotation",
+                "kms:GetKeyPolicy", "kms:PutKeyPolicy", "kms:ListAliases",
+                "kms:ListResourceTags", "kms:TagResource", "kms:UntagResource",
+                "kms:ScheduleKeyDeletion", "kms:CancelKeyDeletion",
+                "kms:Encrypt", "kms:Decrypt", "kms:ReEncryptFrom", "kms:ReEncryptTo",
+                "kms:GenerateDataKey*", "kms:CreateGrant", "kms:RetireGrant", "kms:RevokeGrant"
+              ],
+              "Resource": "arn:aws:kms:<REGION>:<ACCOUNT_ID>:key/*",
+              "Condition": {
+                "ForAllValues:StringLike": {
+                  "kms:ResourceAliases": "alias/<PROJECT_NAME>-kms-*"
+                }
+              }
+            },
+            {
+              "Sid": "Lambda",
+              "Effect": "Allow",
+              "Action": [
+                "lambda:CreateFunction", "lambda:DeleteFunction", "lambda:GetFunction*",
+                "lambda:UpdateFunctionCode", "lambda:UpdateFunctionConfiguration",
+                "lambda:ListFunctions", "lambda:TagResource", "lambda:UntagResource",
+                "lambda:InvokeFunction", "lambda:PublishLayerVersion",
+                "lambda:DeleteLayerVersion", "lambda:GetLayerVersion", "lambda:AddPermission",
+                "lambda:RemovePermission"
+              ],
+              "Resource": [
+                "arn:aws:lambda:<REGION>:<ACCOUNT_ID>:function:<PROJECT_NAME>-*",
+                "arn:aws:lambda:<REGION>:<ACCOUNT_ID>:layer:<PROJECT_NAME>-*"
+              ]
+            },
+            {
+              "Sid": "IAMForLambda",
+              "Effect": "Allow",
+              "Action": [
+                "iam:CreateRole", "iam:DeleteRole", "iam:GetRole", "iam:ListRoles",
+                "iam:PassRole", "iam:TagRole", "iam:UntagRole",
+                "iam:AttachRolePolicy", "iam:DetachRolePolicy",
+                "iam:PutRolePolicy", "iam:DeleteRolePolicy", "iam:GetRolePolicy",
+                "iam:ListRolePolicies", "iam:ListAttachedRolePolicies",
+                "iam:CreatePolicy", "iam:DeletePolicy", "iam:GetPolicy", "iam:ListPolicies",
+                "iam:CreatePolicyVersion", "iam:DeletePolicyVersion",
+                "iam:ListPolicyVersions", "iam:GetPolicyVersion"
+              ],
+              "Resource": [
+                "arn:aws:iam::<ACCOUNT_ID>:role/<PROJECT_NAME>-*",
+                "arn:aws:iam::<ACCOUNT_ID>:policy/<PROJECT_NAME>-*"
+              ]
+            },
+            {
+              "Sid": "VPCEndpointsAndSecurityGroups",
+              "Effect": "Allow",
+              "Action": [
+                "ec2:CreateVpcEndpoint", "ec2:DeleteVpcEndpoints", "ec2:ModifyVpcEndpoint",
+                "ec2:CreateSecurityGroup", "ec2:DeleteSecurityGroup",
+                "ec2:AuthorizeSecurityGroupIngress", "ec2:AuthorizeSecurityGroupEgress",
+                "ec2:RevokeSecurityGroupIngress", "ec2:RevokeSecurityGroupEgress",
+                "ec2:CreateTags", "ec2:DeleteTags"
+              ],
+              "Resource": [
+                "arn:aws:ec2:<REGION>:<ACCOUNT_ID>:security-group/*",
+                "arn:aws:ec2:<REGION>:<ACCOUNT_ID>:vpc-endpoint/*"
+              ]
+            },
+            {
+              "Sid": "EC2Describe",
+              "Effect": "Allow",
+              "Action": [
+                "ec2:Describe*"
+              ],
+              "Resource": "*"
+            },
+            {
+              "Sid": "CloudWatchLogs",
+              "Effect": "Allow",
+              "Action": [
+                "logs:CreateLogGroup", "logs:DeleteLogGroup", "logs:DescribeLogGroups",
+                "logs:PutRetentionPolicy", "logs:AssociateKmsKey", "logs:DisassociateKmsKey",
+                "logs:TagResource", "logs:UntagResource"
+              ],
+              "Resource": "arn:aws:logs:<REGION>:<ACCOUNT_ID>:log-group:/aws/lambda/<PROJECT_NAME>-*:*"
+            }
+          ]
+        }
+        ```
+
+        </details>
 
     2. If you prefer to deploy through the GitHub workflows -
         - [Setup OIDC](https://docs.github.com/en/actions/how-tos/secure-your-work/security-harden-deployments/oidc-in-aws#configuring-the-role-and-trust-policy) for the IAM role with the permissions mentioned above.
