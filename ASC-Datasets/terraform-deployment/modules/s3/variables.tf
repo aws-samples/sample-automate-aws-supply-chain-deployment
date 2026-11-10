@@ -132,12 +132,6 @@ variable "request_payer" {
   default     = null
 }
 
-variable "website" {
-  description = "Map containing static web-site hosting or redirect configuration."
-  type        = any # map(string)
-  default     = {}
-}
-
 variable "cors_rule" {
   description = "List of maps containing rules for Cross-Origin Resource Sharing."
   type        = any

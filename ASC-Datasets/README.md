@@ -1,7 +1,6 @@
-# Software (software, scripts or sample code) is licensed under the Apache License  Version 2.0.
-# Author: AWS Professional Services
+# This directory can be used as a standalone repository that deploys AWS Supply Chain Instance and Datasets
 
-This folder is a standalone repository that deploys ASC Instance and Datasets. It uses Hashicorp Terraform and python for deployment.
+We have shown its deployment using HashiCorp Terraform and Python.
 
 ## Contents
 
@@ -33,7 +32,7 @@ This folder is a standalone repository that deploys ASC Instance and Datasets. I
 
 1. Clone this repository to your local machine.
 ```bash
-git clone <INSERT_GITHUB_URL>
+git clone https://github.com/aws-samples/sample-automate-aws-supply-chain-deployment.git
 cd ASC-Deployment
 ```
 
@@ -158,7 +157,7 @@ git push -u origin dev
 
 ```bash
 #Clone this repository to your local machine.
-git clone <INSERT_GITHUB_URL>
+git clone https://github.com/aws-samples/sample-automate-aws-supply-chain-deployment.git
 ```
 
 ``` bash
@@ -261,7 +260,7 @@ rm -f $REPO_NAME-outputs.tfvars
 
 ```bash
 #Clone this repository to your local machine.
-git clone <INSERT_GITHUB_URL>
+git clone https://github.com/aws-samples/sample-automate-aws-supply-chain-deployment.git
 ```
 
 ``` bash

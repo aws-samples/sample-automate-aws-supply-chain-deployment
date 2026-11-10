@@ -1,7 +1,6 @@
-# Software (software, scripts or sample code) is licensed under the Apache License  Version 2.0.
-# Author: AWS Professional Services
+# This directory can be used as a standalone repository that deploys AWS Supply Chain Integration Flows
 
-This folder is a standalone repository that deploys ASC integration flows. It uses Hashicorp Terraform and python for deployment.
+We have shown its deployment using HashiCorp Terraform and Python.
 
 ## Contents
 
@@ -33,7 +32,7 @@ This folder is a standalone repository that deploys ASC integration flows. It us
 
 1. Clone this repository to your local machine.
 ```bash
-git clone <INSERT_GITHUB_URL>
+git clone https://github.com/aws-samples/sample-automate-aws-supply-chain-deployment.git
 cd ASC-Deployment
 ```
 
@@ -157,7 +156,7 @@ We use AWS S3 bucket for artifacts instead of JFrog for the purpose of this solu
 
 ```bash
 #Clone this repository to your local machine.
-git clone <INSERT_GITHUB_URL>
+git clone https://github.com/aws-samples/sample-automate-aws-supply-chain-deployment.git
 ```
 
 ``` bash
@@ -249,7 +248,7 @@ We use AWS S3 bucket for artifacts instead of JFrog for the purpose of this solu
 
 ```bash
 #Clone this repository to your local machine.
-git clone <INSERT_GITHUB_URL>
+git clone https://github.com/aws-samples/sample-automate-aws-supply-chain-deployment.git
 ```
 
 ``` bash

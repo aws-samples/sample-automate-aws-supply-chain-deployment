@@ -1,7 +1,6 @@
+#!/bin/bash
 # Software (software, scripts or sample code) is licensed under the Apache License, Version 2.0.
 # Author: AWS Professional Services
-
-#!/bin/bash
 
 # Change to the root directory of Terraform
 cd "$(dirname "$0")/../terraform-deployment" || exit
@@ -76,8 +75,8 @@ if  ! jf rt download \
       error_exit "Source outputs not found. Please run the $INFRA_REPO_NAME workflow first."
 fi
 
-mv $INFRA_REPO_NAME/$ENVIRONMENT/reusable-outputs/* ./
-rm -rf $INFRA_REPO_NAME
+mv "$INFRA_REPO_NAME/$ENVIRONMENT/reusable-outputs/"* ./
+rm -rf "$INFRA_REPO_NAME"
 
 # Extract kms_keys map
 KMS_KEYS=$(awk -F '=' '/^kms_keys/ {print $2}' "kms-downloaded-outputs.tfvars" | jq '.')

@@ -1,7 +1,6 @@
+#!/bin/bash
 # Software (software, scripts or sample code) is licensed under the Apache License, Version 2.0.
 # Author: AWS Professional Services
-
-#!/bin/bash
 
 AWS_REGION="$REGION"
 
