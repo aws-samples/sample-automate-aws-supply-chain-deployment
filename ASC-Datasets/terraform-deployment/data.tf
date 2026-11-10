@@ -180,16 +180,27 @@ data "aws_iam_policy_document" "s3_policy_document" {
       "s3:PutLifecycleConfiguration",
       "s3:PutBucketPublicAccessBlock",
       "s3:DeleteObject",
-      "s3:ListAllMyBuckets",
       "s3:PutBucketOwnershipControls",
       "s3:PutBucketNotification",
-      "s3:PutAccountPublicAccessBlock",
       "s3:PutBucketLogging",
       "s3:PutBucketTagging"
     ]
     resources = [
-      "arn:aws:s3:::aws-supply-chain-*"
+      "arn:aws:s3:::aws-supply-chain-*",
+      "arn:aws:s3:::aws-supply-chain-*/*"
     ]
+    condition {
+      test     = "StringEquals"
+      variable = "aws:ResourceAccount"
+      values   = [local.account_id]
+    }
+  }
+  statement {
+    actions = [
+      "s3:ListAllMyBuckets",
+      "s3:PutAccountPublicAccessBlock"
+    ]
+    resources = ["*"]
   }
 }
 

@@ -19,6 +19,7 @@ module "s3_buckets" {
   object_ownership                            = try(each.value.object_ownership, null)
   attach_access_log_delivery_policy           = try(each.value.attach_access_log_delivery_policy, false)
   access_log_delivery_policy_source_buckets   = try(each.value.access_log_delivery_policy_source_buckets, null)
+  attach_deny_insecure_transport_policy       = true
   force_destroy                               = try(each.value.force_destroy, false)
 
   tags = var.tags
