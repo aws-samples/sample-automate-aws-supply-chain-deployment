@@ -1,4 +1,4 @@
-# Software (software, scripts or sample code) is licensed under the Apache License, Version 2.0.
+# Software (software, scripts or sample code) is licensed under the MIT-0 License.
 # Author: AWS Professional Services
 
 module "asc_lambda_execution_role" {
@@ -43,6 +43,14 @@ module "asc_instance_lambda" {
   tags = var.tags
 }
 
+resource "aws_cloudwatch_log_group" "asc_instance_lambda_log_group" {
+  name              = "/aws/lambda/${module.asc_instance_lambda.function_name}"
+  retention_in_days = 400
+  kms_key_id        = module.kms_keys["artifacts"].arn
+
+  tags = var.tags
+}
+
 module "asc_namespace_lambda" {
   source = "./modules/lambda"
 
@@ -53,6 +61,10 @@ module "asc_namespace_lambda" {
   timeout                 = "300"
   memory_size             = "256"
   lambda_role_arn         = module.asc_lambda_execution_role.role_arn
+
+  # Invoked via for_each in aws_lambda_invocation.create_namespace, so needs to
+  # tolerate Terraform's default parallelism of 10 concurrent apply operations.
+  reserved_concurrent_executions = 10
 
   inside_vpc              = true
   vpc_id                  = var.vpc_config[0].vpc_id
@@ -92,6 +104,10 @@ module "asc_dataset_lambda" {
   memory_size             = "256"
   lambda_role_arn         = module.asc_lambda_execution_role.role_arn
 
+  # Invoked via for_each in aws_lambda_invocation.create_dataset, so needs to
+  # tolerate Terraform's default parallelism of 10 concurrent apply operations.
+  reserved_concurrent_executions = 10
+
   inside_vpc              = true
   vpc_id                  = var.vpc_config[0].vpc_id
   vpc_subnet_ids          = var.vpc_config[0].subnets
@@ -120,7 +136,10 @@ resource "aws_cloudwatch_log_group" "asc_dataset_lambda_log_group" {
 }
 
 resource "aws_lambda_invocation" "create_instance" {
-  depends_on = [ module.asc_instance_lambda ]
+  depends_on = [
+    module.asc_instance_lambda,
+    aws_cloudwatch_log_group.asc_instance_lambda_log_group
+  ]
   count      = var.instance_operation == "CREATE" ? 1 : 0
 
   function_name = module.asc_instance_lambda.function_name

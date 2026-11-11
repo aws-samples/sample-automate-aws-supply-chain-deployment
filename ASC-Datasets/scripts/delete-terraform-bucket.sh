@@ -1,5 +1,5 @@
 #!/bin/bash
-# Software (software, scripts or sample code) is licensed under the Apache License, Version 2.0.
+# Software (software, scripts or sample code) is licensed under the MIT-0 License.
 # Author: AWS Professional Services
 
 BUCKET_NAME="$PROJECT_NAME-$ACCOUNT_ID-$REGION-terraform-state-$ENVIRONMENT"

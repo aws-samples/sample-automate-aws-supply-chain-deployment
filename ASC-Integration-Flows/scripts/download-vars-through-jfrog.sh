@@ -1,9 +1,11 @@
 #!/bin/bash
-# Software (software, scripts or sample code) is licensed under the Apache License, Version 2.0.
+# Software (software, scripts or sample code) is licensed under the MIT-0 License.
 # Author: AWS Professional Services
 
 # Change to the root directory of Terraform
 cd "$(dirname "$0")/../terraform-deployment" || exit
+
+set -euo pipefail
 
 # Function to display error and exit
 error_exit() {
@@ -32,8 +34,8 @@ for SOURCE_REPO in "$@"; do
         error_exit "Source outputs not found. Please run the $SOURCE_REPO workflow first."
     fi
 
-    mv $SOURCE_REPO/$ENVIRONMENT/reusable-outputs/* ./
-    rm -rf $SOURCE_REPO
+    mv "$SOURCE_REPO/$ENVIRONMENT/reusable-outputs/"* ./
+    rm -rf "$SOURCE_REPO"
 
      # Merge with existing input vars
     TARGET_FILE="tfInputs/$ENVIRONMENT.tfvars"
@@ -42,9 +44,9 @@ for SOURCE_REPO in "$@"; do
     touch "$TARGET_FILE"
 
     if [ -f "downloaded-outputs.tfvars" ]; then
-        echo -e "\n# === BEGIN MERGED FROM $SOURCE_REPO ===" >> "$TARGET_FILE"
+        printf '\n# === BEGIN MERGED FROM %s ===\n' "$SOURCE_REPO" >> "$TARGET_FILE"
         cat "downloaded-outputs.tfvars" >> "$TARGET_FILE"
-        echo -e "# === END MERGED FROM $SOURCE_REPO ===\n" >> "$TARGET_FILE"
+        printf '# === END MERGED FROM %s ===\n\n' "$SOURCE_REPO" >> "$TARGET_FILE"
 
         echo "Successfully merged source outputs with input variables"
     else
