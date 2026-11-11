@@ -1,4 +1,4 @@
-# Software (software, scripts or sample code) is licensed under the Apache License, Version 2.0.
+# Software (software, scripts or sample code) is licensed under the MIT-0 License.
 # Author: AWS Professional Services
 
 resource "aws_s3_bucket" "this" {
@@ -664,6 +664,7 @@ data "aws_iam_policy_document" "deny_insecure_transport" {
     ]
 
     resources = [
+      aws_s3_bucket.this.arn,
       "${aws_s3_bucket.this.arn}/*",
     ]
 

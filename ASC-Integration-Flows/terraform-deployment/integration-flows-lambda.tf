@@ -1,4 +1,4 @@
-# Software (software, scripts or sample code) is licensed under the Apache License, Version 2.0.
+# Software (software, scripts or sample code) is licensed under the MIT-0 License.
 # Author: AWS Professional Services
 
 module "integration_flows_lambda_execution_role" {
@@ -23,6 +23,10 @@ module "integration_flows_lambda" {
   timeout                 = "300"
   memory_size             = "256"
   lambda_role_arn         = module.integration_flows_lambda_execution_role.role_arn
+
+  # Invoked via for_each in aws_lambda_invocation.create_flow, so needs to
+  # tolerate Terraform's default parallelism of 10 concurrent apply operations.
+  reserved_concurrent_executions = 10
 
   inside_vpc              = true
   vpc_id                  = var.vpc_config[0].vpc_id

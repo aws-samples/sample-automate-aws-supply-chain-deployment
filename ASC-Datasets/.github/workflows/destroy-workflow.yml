@@ -1,4 +1,4 @@
-# Software (software, scripts or sample code) is licensed under the Apache License, Version 2.0.
+# Software (software, scripts or sample code) is licensed under the MIT-0 License.
 # Author: AWS Professional Services
 
 name: Destroy workflow
@@ -9,10 +9,6 @@ on:
 permissions:
   contents: read
   id-token: write
-  pull-requests: write
-  checks: write
-  issues: write
-  actions: read
 
 env:
   PROJECT_NAME: "asc-deployment"
@@ -102,6 +98,8 @@ jobs:
       
       - name: Setup Terraform latest version
         uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
+        with:
+          terraform_version: 1.12.2
       
       - name: JFrog Login
         uses: jfrog/setup-jfrog-cli@5a4fbe1e30dbb570cc62d2513421c4b9bc3c9959 # v4.10.1
@@ -201,6 +199,8 @@ jobs:
       
       - name: Setup Terraform latest version
         uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
+        with:
+          terraform_version: 1.12.2
 
       - name: JFrog Login
         uses: jfrog/setup-jfrog-cli@5a4fbe1e30dbb570cc62d2513421c4b9bc3c9959 # v4.10.1

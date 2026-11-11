@@ -1,0 +1,32 @@
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# ASH / SAST scan outputs
+.ash/
+ash-scan-output-*/
+.holmesignore
+
+# Terraform
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+*.tfplan
+tfplan.out
+providers.tf
+backend.tf
+
+# Lambda build outputs
+lambdaOutput/
+layerOutput/
+
+# Editor / local
+.vscode/
+.idea/
+*.bak
+*.swp

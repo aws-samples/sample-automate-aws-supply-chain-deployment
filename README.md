@@ -1,5 +1,7 @@
 # Automate the deployment of AWS Supply Chain data lake through GitHub Actions CI/CD, Artifactory and Terraform in a multi-repo setup
 
+> **Not for production use without additional security testing.** This sample demonstrates a Terraform + GitHub Actions deployment pattern. Review [SECURITY.md](./SECURITY.md) for the accepted security debt and the production recommendations before deploying beyond a non-production account.
+
 AWS Supply Chain, as stated by the [AWS documentation](https://docs.aws.amazon.com/aws-supply-chain/latest/userguide/what-is-service.html), is a cloud-based supply chain management application that works with your existing enterprise resource planning (ERP) and supply chain management systems. Using AWS Supply Chain, you can connect and extract your inventory, supply, and demand related data from existing ERP or supply chain systems into one unified AWS Supply Chain data model.
 
 ## Problem Statement
@@ -129,7 +131,7 @@ Follow these steps to deploy this solution:
               ],
               "Resource": "arn:aws:kms:<REGION>:<ACCOUNT_ID>:key/*",
               "Condition": {
-                "ForAllValues:StringLike": {
+                "ForAnyValue:StringLike": {
                   "kms:ResourceAliases": "alias/<PROJECT_NAME>-kms-*"
                 }
               }
@@ -223,7 +225,7 @@ Follow these steps to deploy this solution:
 
 -  If you prefer the deployment to happen through GitHub Actions workflows, do the following -
 
-    1. Setup [JFrog Artifactory account](https://jfrog.com/artifactory/?utm_source=google&utm_medium=cpc_search&utm_campaign=SearchDSKBrandAPACIN202506&utm_term=jfrog%20cloud&gads_network=g&utm_content=u-bin&gads_campaign_id=22674833884&gads_adgroup_id=184501797241&gads_extension_id=233003714635&gads_target_id=aud-312135645780:kwd-1598615735032&gads_matchtype=b&gad_source=1&gad_campaignid=22674833884&gbraid=0AAAAADqV85U5B37iapTR9IIFHBvydF5AQ&gclid=CjwKCAjwiY_GBhBEEiwAFaghvqdNV-odNLZXPHjT7NAwf8lA-QuMtg666hgvDW1oCJ4nn7wvf869_xoCW4IQAvD_BwE) to get the host name, login username and login access token.
+    1. Setup [JFrog Artifactory account](https://jfrog.com/artifactory/) to get the host name, login username and login access token.
 
     2. Setup [JFrog Project key and repository](https://jfrog.com/help/r/jfrog-platform-administration-documentation/step-1-set-up-a-new-project) for storing Artifacts.
     
@@ -263,7 +265,7 @@ Follow these steps to deploy this solution:
 ![ASC Deployment Flow through GitHub workflows](./Images/Architecture%20Automated.png)
 
 **Artifactory Management** - 
-**JFrog Artifactory** for enterprise grade Artifacts management. It will be used for storing resource information and outputs to be used for in a multi-repo deployment.
+**JFrog Artifactory** for Artifacts management. It will be used for storing resource information and outputs to be used for in a multi-repo deployment.
 
 #### Steps involved -
 1. Deploy ASC Datasets infrastructure and the Databases, through the deployment steps mentioned in [README](./ASC-Datasets/README.md). Follow the automated deployment approach using GitHub workflows.
@@ -283,7 +285,7 @@ Follow these steps to deploy this solution:
 ![ASC Deployment Flow through Terraform](./Images/Architecture%20Manual.png)
 
 **Artifactory Management** - 
-**Amazon S3** for enterprise grade Artifacts management. It will be used for storing resource information and outputs to be used for in a multi-repo deployment.
+**Amazon S3** for Artifacts management. It will be used for storing resource information and outputs to be used for in a multi-repo deployment.
 
 #### Steps involved -
 1. Deploy ASC Datasets infrastructure and the Databases, through the deployment steps mentioned in [README](./ASC-Datasets/README.md). Follow the manual deployment approach from your local machine using Terraform.
@@ -340,8 +342,8 @@ aws s3 cp outbound_order_line_sample.csv s3://aws-supply-chain-data-<Instance_ID
 
 1. Search for the AWS Supply Chain service in the AWS Console.
 2. Head over to the Instance that we created from the dashboard. 
-    - This solution uses the name of **asc-deployment-poc-dev-asc-instance**
-3. We use IAM Identity Center to manager user access to the AWS Supply Chain instance.
+    - This solution uses the name of **asc-deployment-dev-asc-instance**
+3. We use AWS IAM Identity Center to manage user access to the AWS Supply Chain instance.
 4. Login as the Admin of the application to ensure complete access in utilising this solution.
 
 ## Analyzing data with AWS Supply Chain Analytics
@@ -350,7 +352,7 @@ aws s3 cp outbound_order_line_sample.csv s3://aws-supply-chain-data-<Instance_ID
 
 2. In this solution, we have demonstrated the creation of **Calendar** and **Outbound_Order_Line** datasets. We will create an Analysis that uses these datasets.
 
-3. AWS Supply Chain provides a prebuilt dashboard for analysing the mentioned datasets. We will use the **Seasonability Analysis** Dashboard. Follow the steps mentioned in this [AWS guide](https://docs.aws.amazon.com/aws-supply-chain/latest/userguide/prebuilt_dashboards.html) to add the dashboard.
+3. AWS Supply Chain provides a prebuilt dashboard for analysing the mentioned datasets. We will use the **Seasonality Analysis** Dashboard. Follow the steps mentioned in this [AWS guide](https://docs.aws.amazon.com/aws-supply-chain/latest/userguide/prebuilt_dashboards.html) to add the dashboard.
 
 4. Click on the dashboard to see its analysis that would look like this (Based on sample CSV files for Calendar data and Outbound Order Line data) - 
 
@@ -380,7 +382,7 @@ This solution can be replicated for more datasets as per the requirements and be
 - [AWS Lambda](https://aws.amazon.com/lambda/) functions used in this solution may need to be enhanced to handle API retries and memory management in a production scale deployment.
 
 ## Security
-See [CONTRIBUTING](./CONTRIBUTING.md) for more information.
+See [SECURITY.md](./SECURITY.md) for the accepted security debt in this sample and the production recommendations that apply to each item. For responsible-disclosure of a vulnerability, see [CONTRIBUTING](./CONTRIBUTING.md).
 
 ## License
 This library is licensed under the MIT-0 License. See the [LICENSE](./LICENSE) file.

@@ -1,4 +1,4 @@
-# Software (software, scripts or sample code) is licensed under the Apache License, Version 2.0.
+# Software (software, scripts or sample code) is licensed under the MIT-0 License.
 # Author: AWS Professional Services
 
 module "s3_buckets" {
@@ -20,6 +20,7 @@ module "s3_buckets" {
   attach_access_log_delivery_policy           = try(each.value.attach_access_log_delivery_policy, false)
   access_log_delivery_policy_source_buckets   = try(each.value.access_log_delivery_policy_source_buckets, null)
   attach_deny_insecure_transport_policy       = true
+  attach_public_policy                        = true
   force_destroy                               = try(each.value.force_destroy, false)
 
   tags = var.tags

@@ -1,4 +1,4 @@
-# Software (software, scripts or sample code) is licensed under the Apache License, Version 2.0.
+# Software (software, scripts or sample code) is licensed under the MIT-0 License.
 # Author: AWS Professional Services
 
 data "aws_caller_identity" "current" {}
@@ -124,6 +124,11 @@ data "aws_iam_policy_document" "kms_policy" {
         "s3.amazonaws.com"
       ]
     }
+    condition {
+      test     = "StringEquals"
+      variable = "aws:SourceAccount"
+      values   = [local.account_id]
+    }
   }
 }
 
@@ -167,40 +172,37 @@ data "aws_iam_policy_document" "asc_policy_document" {
 }
 
 data "aws_iam_policy_document" "s3_policy_document" {
+  # Scoped to this account via aws:ResourceAccount so the role can never
+  # touch a staging bucket owned by a different AWS account.
+  # s3:PutBucketPolicy, s3:PutAccountPublicAccessBlock, and s3:ListAllMyBuckets
+  # intentionally removed per security review: the Lambda does not need them
+  # and PutAccountPublicAccessBlock cannot be resource-scoped.
   statement {
     actions = [
       "s3:GetObject",
       "s3:PutObject",
+      "s3:DeleteObject",
       "s3:ListBucket",
       "s3:CreateBucket",
       "s3:PutBucketVersioning",
       "s3:PutBucketObjectLockConfiguration",
       "s3:PutEncryptionConfiguration",
-      "s3:PutBucketPolicy",
       "s3:PutLifecycleConfiguration",
       "s3:PutBucketPublicAccessBlock",
-      "s3:DeleteObject",
       "s3:PutBucketOwnershipControls",
       "s3:PutBucketNotification",
       "s3:PutBucketLogging",
       "s3:PutBucketTagging"
     ]
     resources = [
-      "arn:aws:s3:::aws-supply-chain-*",
-      "arn:aws:s3:::aws-supply-chain-*/*"
+      "arn:aws:s3:::aws-supply-chain-data-*",
+      "arn:aws:s3:::aws-supply-chain-data-*/*"
     ]
     condition {
       test     = "StringEquals"
       variable = "aws:ResourceAccount"
       values   = [local.account_id]
     }
-  }
-  statement {
-    actions = [
-      "s3:ListAllMyBuckets",
-      "s3:PutAccountPublicAccessBlock"
-    ]
-    resources = ["*"]
   }
 }
 
