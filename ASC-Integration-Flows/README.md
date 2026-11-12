@@ -23,8 +23,8 @@ We have shown its deployment using HashiCorp Terraform and Python.
   GitHub workflows connect securely to your AWS environment using OIDC, which you should have configured from [Pre-Requisistes](../README.md#pre-requisites)
 
   **NOTE**
-  - For maintaining Artifacts, we have used **JFrog** as the solution for enterprise grade Artifacts management as part of the GitHub workflow deployment.
-  - If you want to proceed without using **JFrog**, please follow the [Manual Deployment](#manual-deployment) instructions, where we have used **Amazon S3** for enterprise grade Artifacts management.
+  - For maintaining Artifacts, we have used **JFrog** as the solution for Artifacts management as part of the GitHub workflow deployment.
+  - If you want to proceed without using **JFrog**, please follow the [Manual Deployment](#manual-deployment) instructions, where we have used **Amazon S3** for Artifacts management.
 
 ### Pre-Requisites
 
