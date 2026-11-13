@@ -1,4 +1,4 @@
-# Software (software, scripts or sample code) is licensed under the Apache License, Version 2.0.
+# Software (software, scripts or sample code) is licensed under the MIT-0 License.
 # Author: AWS Professional Services
 
 variable "create" {
@@ -190,5 +190,11 @@ variable "is_java" {
 variable "replace_sg_on_destroy" {
   type         = bool
   default      = false
-  description  = "Replace security group on destroy" 
+  description  = "Replace security group on destroy"
+}
+
+variable "reserved_concurrent_executions" {
+  type        = number
+  default     = 1
+  description = "Reserved concurrent executions for the Lambda function. Default 1 to bound blast radius; set -1 to unreserve."
 }

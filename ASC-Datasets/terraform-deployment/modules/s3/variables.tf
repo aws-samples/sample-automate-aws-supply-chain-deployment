@@ -1,4 +1,4 @@
-# Software (software, scripts or sample code) is licensed under the Apache License, Version 2.0.
+# Software (software, scripts or sample code) is licensed under the MIT-0 License.
 # Author: AWS Professional Services
 
 variable "bucket_name" {
@@ -130,12 +130,6 @@ variable "request_payer" {
   description = "(Optional) Specifies who should bear the cost of Amazon S3 data transfer. Can be either BucketOwner or Requester. By default, the owner of the S3 bucket would incur the costs of any data transfer. See Requester Pays Buckets developer guide for more information."
   type        = string
   default     = null
-}
-
-variable "website" {
-  description = "Map containing static web-site hosting or redirect configuration."
-  type        = any # map(string)
-  default     = {}
 }
 
 variable "cors_rule" {

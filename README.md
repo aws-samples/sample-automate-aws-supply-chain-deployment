@@ -1,5 +1,7 @@
 # Automate the deployment of AWS Supply Chain data lake through GitHub Actions CI/CD, Artifactory and Terraform in a multi-repo setup
 
+> **Not for production use without additional security testing.** This sample demonstrates a Terraform + GitHub Actions deployment pattern. Review [SECURITY.md](./SECURITY.md) for the accepted security debt and the production recommendations before deploying beyond a non-production account.
+
 AWS Supply Chain, as stated by the [AWS documentation](https://docs.aws.amazon.com/aws-supply-chain/latest/userguide/what-is-service.html), is a cloud-based supply chain management application that works with your existing enterprise resource planning (ERP) and supply chain management systems. Using AWS Supply Chain, you can connect and extract your inventory, supply, and demand related data from existing ERP or supply chain systems into one unified AWS Supply Chain data model.
 
 ## Problem Statement
@@ -63,17 +65,149 @@ Follow these steps to deploy this solution:
 - Create a VPC with 2 private subnets in your AWS Account in the region of your choice.
 
 - Setting up the deployment role used for this solution -
-    1. Sufficient permissions are required for the IAM role to the following services -
-        - [AWS Supply Chain service](https://docs.aws.amazon.com/aws-supply-chain/latest/adminguide/getting-started.html)   (Full Access preferred for deploying its components like Datasets and Integration Flows, along with accessing it from the AWS Console)
-        - [Amazon Chime](https://aws.amazon.com/chime/download-chime/)                                                      (For use by the AWS Supply Chain service)
-        - [Amazon EventBridge](https://aws.amazon.com/eventbridge/)                                                         (For use by the AWS Supply Chain service)
-        - [AWS KMS](https://docs.aws.amazon.com/kms/latest/developerguide/overview.html)                                    (For access to the AWS KMS keys used for the Amazon S3 Artifacts bucket and the Amazon S3 ASC Staging Bucket)
-        - [Amazon S3](https://aws.amazon.com/s3/)                                                                           (For access to the Amazon S3 Artifacts bucket, Amazon S3 Server access logging bucket, and the Amazon S3 ASC Staging bucket. If you are using manual deployment, permissions for Amazon S3 Terraform Artifacts bucket is also required)
-        - [Amazon EC2](https://aws.amazon.com/ec2/)                                                                         (For Amazon EC2 Security groups and AWS VPC endpoints)
-        - [Amazon VPC](https://docs.aws.amazon.com/vpc/latest/userguide/what-is-amazon-vpc.html)                            (For creating and managing Amazon VPC)
-        - [AWS Lambda](https://aws.amazon.com/lambda/)                                                                      (For creating the AWS Lambda functions that deploys the AWS Supply Chain components)
-        - [AWS IAM](https://aws.amazon.com/iam/)                                                                            (For creating AWS Lambda service roles)
-        - [Amazon CloudWatch](https://aws.amazon.com/cloudwatch/)                                                           (For creating and managing Amazon CloudWatch log groups)
+    1. The deployment IAM role must have a **scoped** permission set — not "Full Access" on whole services. Grant only the actions below, restricted to this project's resource ARNs. Replace `<ACCOUNT_ID>`, `<REGION>`, and `<PROJECT_NAME>` (defaults to `asc-deployment`) with your own values. A ready-to-use example policy follows the table.
+
+        | Service | Why it is needed | Scope |
+        |---|---|---|
+        | [AWS Supply Chain](https://docs.aws.amazon.com/aws-supply-chain/latest/adminguide/getting-started.html) | Create / manage the ASC instance, namespaces, datasets, and integration flows | `arn:aws:scn:<REGION>:<ACCOUNT_ID>:instance/*` |
+        | [AWS KMS](https://docs.aws.amazon.com/kms/latest/developerguide/overview.html) | Create and manage the two project KMS keys (artifacts bucket, ASC staging bucket) | `arn:aws:kms:<REGION>:<ACCOUNT_ID>:key/*` with condition `kms:ResourceAliases` matching `alias/<PROJECT_NAME>-kms-*` |
+        | [Amazon S3](https://aws.amazon.com/s3/) | Create and manage the Artifacts, Server-Access-Logs, and ASC Staging buckets (and the Terraform state bucket for manual deployment) | `arn:aws:s3:::<PROJECT_NAME>-<ACCOUNT_ID>-<REGION>-*` and `arn:aws:s3:::aws-supply-chain-*` |
+        | [AWS Lambda](https://aws.amazon.com/lambda/) | Create the deployer Lambda functions | `arn:aws:lambda:<REGION>:<ACCOUNT_ID>:function:<PROJECT_NAME>-*` |
+        | [AWS IAM](https://aws.amazon.com/iam/) | Create the Lambda execution roles and their inline/managed policies | `arn:aws:iam::<ACCOUNT_ID>:role/<PROJECT_NAME>-*`, `arn:aws:iam::<ACCOUNT_ID>:policy/<PROJECT_NAME>-*` |
+        | [Amazon EC2 / VPC](https://docs.aws.amazon.com/vpc/latest/userguide/what-is-amazon-vpc.html) | Manage security groups and VPC interface endpoints inside the pre-created VPC (the VPC itself is created by you — the role does **not** need `ec2:CreateVpc`) | Resource-level ARNs for `security-group/*` and `vpc-endpoint/*`; `ec2:Describe*` on `*` |
+        | [Amazon CloudWatch Logs](https://aws.amazon.com/cloudwatch/) | Create and manage project log groups | `arn:aws:logs:<REGION>:<ACCOUNT_ID>:log-group:/aws/lambda/<PROJECT_NAME>-*:*` |
+
+        <details>
+        <summary>Example scoped deployment-role policy (click to expand)</summary>
+
+        ```json
+        {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "SupplyChain",
+              "Effect": "Allow",
+              "Action": [
+                "scn:CreateInstance", "scn:DescribeInstance", "scn:GetInstance",
+                "scn:ListInstances", "scn:UpdateInstance",
+                "scn:CreateDataLakeDataset", "scn:GetDataLakeDataset",
+                "scn:ListDataLakeDatasets", "scn:UpdateDataLakeDataset", "scn:DeleteDataLakeDataset",
+                "scn:CreateDataLakeNamespace", "scn:GetDataLakeNamespace",
+                "scn:ListDataLakeNamespaces", "scn:UpdateDataLakeNamespace", "scn:DeleteDataLakeNamespace",
+                "scn:TagResource", "scn:UntagResource"
+              ],
+              "Resource": "arn:aws:scn:<REGION>:<ACCOUNT_ID>:instance/*"
+            },
+            {
+              "Sid": "S3Project",
+              "Effect": "Allow",
+              "Action": [
+                "s3:CreateBucket", "s3:DeleteBucket", "s3:ListBucket", "s3:GetBucket*",
+                "s3:PutBucketPolicy", "s3:PutBucketVersioning", "s3:PutBucketTagging",
+                "s3:PutBucketLogging", "s3:PutBucketNotification", "s3:PutBucketOwnershipControls",
+                "s3:PutBucketPublicAccessBlock", "s3:PutBucketObjectLockConfiguration",
+                "s3:PutLifecycleConfiguration", "s3:PutEncryptionConfiguration",
+                "s3:GetObject", "s3:PutObject", "s3:DeleteObject", "s3:ListAllMyBuckets"
+              ],
+              "Resource": [
+                "arn:aws:s3:::<PROJECT_NAME>-<ACCOUNT_ID>-<REGION>-*",
+                "arn:aws:s3:::<PROJECT_NAME>-<ACCOUNT_ID>-<REGION>-*/*",
+                "arn:aws:s3:::aws-supply-chain-*",
+                "arn:aws:s3:::aws-supply-chain-*/*"
+              ]
+            },
+            {
+              "Sid": "KMSProject",
+              "Effect": "Allow",
+              "Action": [
+                "kms:CreateKey", "kms:CreateAlias", "kms:DeleteAlias",
+                "kms:DescribeKey", "kms:EnableKey", "kms:DisableKey",
+                "kms:EnableKeyRotation", "kms:DisableKeyRotation",
+                "kms:GetKeyPolicy", "kms:PutKeyPolicy", "kms:ListAliases",
+                "kms:ListResourceTags", "kms:TagResource", "kms:UntagResource",
+                "kms:ScheduleKeyDeletion", "kms:CancelKeyDeletion",
+                "kms:Encrypt", "kms:Decrypt", "kms:ReEncryptFrom", "kms:ReEncryptTo",
+                "kms:GenerateDataKey*", "kms:CreateGrant", "kms:RetireGrant", "kms:RevokeGrant"
+              ],
+              "Resource": "arn:aws:kms:<REGION>:<ACCOUNT_ID>:key/*",
+              "Condition": {
+                "ForAnyValue:StringLike": {
+                  "kms:ResourceAliases": "alias/<PROJECT_NAME>-kms-*"
+                }
+              }
+            },
+            {
+              "Sid": "Lambda",
+              "Effect": "Allow",
+              "Action": [
+                "lambda:CreateFunction", "lambda:DeleteFunction", "lambda:GetFunction*",
+                "lambda:UpdateFunctionCode", "lambda:UpdateFunctionConfiguration",
+                "lambda:ListFunctions", "lambda:TagResource", "lambda:UntagResource",
+                "lambda:InvokeFunction", "lambda:PublishLayerVersion",
+                "lambda:DeleteLayerVersion", "lambda:GetLayerVersion", "lambda:AddPermission",
+                "lambda:RemovePermission"
+              ],
+              "Resource": [
+                "arn:aws:lambda:<REGION>:<ACCOUNT_ID>:function:<PROJECT_NAME>-*",
+                "arn:aws:lambda:<REGION>:<ACCOUNT_ID>:layer:<PROJECT_NAME>-*"
+              ]
+            },
+            {
+              "Sid": "IAMForLambda",
+              "Effect": "Allow",
+              "Action": [
+                "iam:CreateRole", "iam:DeleteRole", "iam:GetRole", "iam:ListRoles",
+                "iam:PassRole", "iam:TagRole", "iam:UntagRole",
+                "iam:AttachRolePolicy", "iam:DetachRolePolicy",
+                "iam:PutRolePolicy", "iam:DeleteRolePolicy", "iam:GetRolePolicy",
+                "iam:ListRolePolicies", "iam:ListAttachedRolePolicies",
+                "iam:CreatePolicy", "iam:DeletePolicy", "iam:GetPolicy", "iam:ListPolicies",
+                "iam:CreatePolicyVersion", "iam:DeletePolicyVersion",
+                "iam:ListPolicyVersions", "iam:GetPolicyVersion"
+              ],
+              "Resource": [
+                "arn:aws:iam::<ACCOUNT_ID>:role/<PROJECT_NAME>-*",
+                "arn:aws:iam::<ACCOUNT_ID>:policy/<PROJECT_NAME>-*"
+              ]
+            },
+            {
+              "Sid": "VPCEndpointsAndSecurityGroups",
+              "Effect": "Allow",
+              "Action": [
+                "ec2:CreateVpcEndpoint", "ec2:DeleteVpcEndpoints", "ec2:ModifyVpcEndpoint",
+                "ec2:CreateSecurityGroup", "ec2:DeleteSecurityGroup",
+                "ec2:AuthorizeSecurityGroupIngress", "ec2:AuthorizeSecurityGroupEgress",
+                "ec2:RevokeSecurityGroupIngress", "ec2:RevokeSecurityGroupEgress",
+                "ec2:CreateTags", "ec2:DeleteTags"
+              ],
+              "Resource": [
+                "arn:aws:ec2:<REGION>:<ACCOUNT_ID>:security-group/*",
+                "arn:aws:ec2:<REGION>:<ACCOUNT_ID>:vpc-endpoint/*"
+              ]
+            },
+            {
+              "Sid": "EC2Describe",
+              "Effect": "Allow",
+              "Action": [
+                "ec2:Describe*"
+              ],
+              "Resource": "*"
+            },
+            {
+              "Sid": "CloudWatchLogs",
+              "Effect": "Allow",
+              "Action": [
+                "logs:CreateLogGroup", "logs:DeleteLogGroup", "logs:DescribeLogGroups",
+                "logs:PutRetentionPolicy", "logs:AssociateKmsKey", "logs:DisassociateKmsKey",
+                "logs:TagResource", "logs:UntagResource"
+              ],
+              "Resource": "arn:aws:logs:<REGION>:<ACCOUNT_ID>:log-group:/aws/lambda/<PROJECT_NAME>-*:*"
+            }
+          ]
+        }
+        ```
+
+        </details>
 
     2. If you prefer to deploy through the GitHub workflows -
         - [Setup OIDC](https://docs.github.com/en/actions/how-tos/secure-your-work/security-harden-deployments/oidc-in-aws#configuring-the-role-and-trust-policy) for the IAM role with the permissions mentioned above.
@@ -91,7 +225,7 @@ Follow these steps to deploy this solution:
 
 -  If you prefer the deployment to happen through GitHub Actions workflows, do the following -
 
-    1. Setup [JFrog Artifactory account](https://jfrog.com/artifactory/?utm_source=google&utm_medium=cpc_search&utm_campaign=SearchDSKBrandAPACIN202506&utm_term=jfrog%20cloud&gads_network=g&utm_content=u-bin&gads_campaign_id=22674833884&gads_adgroup_id=184501797241&gads_extension_id=233003714635&gads_target_id=aud-312135645780:kwd-1598615735032&gads_matchtype=b&gad_source=1&gad_campaignid=22674833884&gbraid=0AAAAADqV85U5B37iapTR9IIFHBvydF5AQ&gclid=CjwKCAjwiY_GBhBEEiwAFaghvqdNV-odNLZXPHjT7NAwf8lA-QuMtg666hgvDW1oCJ4nn7wvf869_xoCW4IQAvD_BwE) to get the host name, login username and login access token.
+    1. Setup [JFrog Artifactory account](https://jfrog.com/artifactory/) to get the host name, login username and login access token.
 
     2. Setup [JFrog Project key and repository](https://jfrog.com/help/r/jfrog-platform-administration-documentation/step-1-set-up-a-new-project) for storing Artifacts.
     
@@ -131,7 +265,7 @@ Follow these steps to deploy this solution:
 ![ASC Deployment Flow through GitHub workflows](./Images/Architecture%20Automated.png)
 
 **Artifactory Management** - 
-**JFrog Artifactory** for enterprise grade Artifacts management. It will be used for storing resource information and outputs to be used for in a multi-repo deployment.
+**JFrog Artifactory** for Artifacts management. It will be used for storing resource information and outputs to be used for in a multi-repo deployment.
 
 #### Steps involved -
 1. Deploy ASC Datasets infrastructure and the Databases, through the deployment steps mentioned in [README](./ASC-Datasets/README.md). Follow the automated deployment approach using GitHub workflows.
@@ -151,7 +285,7 @@ Follow these steps to deploy this solution:
 ![ASC Deployment Flow through Terraform](./Images/Architecture%20Manual.png)
 
 **Artifactory Management** - 
-**Amazon S3** for enterprise grade Artifacts management. It will be used for storing resource information and outputs to be used for in a multi-repo deployment.
+**Amazon S3** for Artifacts management. It will be used for storing resource information and outputs to be used for in a multi-repo deployment.
 
 #### Steps involved -
 1. Deploy ASC Datasets infrastructure and the Databases, through the deployment steps mentioned in [README](./ASC-Datasets/README.md). Follow the manual deployment approach from your local machine using Terraform.
@@ -208,8 +342,8 @@ aws s3 cp outbound_order_line_sample.csv s3://aws-supply-chain-data-<Instance_ID
 
 1. Search for the AWS Supply Chain service in the AWS Console.
 2. Head over to the Instance that we created from the dashboard. 
-    - This solution uses the name of **asc-deployment-poc-dev-asc-instance**
-3. We use IAM Identity Center to manager user access to the AWS Supply Chain instance.
+    - This solution uses the name of **asc-deployment-dev-asc-instance**
+3. We use AWS IAM Identity Center to manage user access to the AWS Supply Chain instance.
 4. Login as the Admin of the application to ensure complete access in utilising this solution.
 
 ## Analyzing data with AWS Supply Chain Analytics
@@ -218,7 +352,7 @@ aws s3 cp outbound_order_line_sample.csv s3://aws-supply-chain-data-<Instance_ID
 
 2. In this solution, we have demonstrated the creation of **Calendar** and **Outbound_Order_Line** datasets. We will create an Analysis that uses these datasets.
 
-3. AWS Supply Chain provides a prebuilt dashboard for analysing the mentioned datasets. We will use the **Seasonability Analysis** Dashboard. Follow the steps mentioned in this [AWS guide](https://docs.aws.amazon.com/aws-supply-chain/latest/userguide/prebuilt_dashboards.html) to add the dashboard.
+3. AWS Supply Chain provides a prebuilt dashboard for analysing the mentioned datasets. We will use the **Seasonality Analysis** Dashboard. Follow the steps mentioned in this [AWS guide](https://docs.aws.amazon.com/aws-supply-chain/latest/userguide/prebuilt_dashboards.html) to add the dashboard.
 
 4. Click on the dashboard to see its analysis that would look like this (Based on sample CSV files for Calendar data and Outbound Order Line data) - 
 
@@ -248,7 +382,7 @@ This solution can be replicated for more datasets as per the requirements and be
 - [AWS Lambda](https://aws.amazon.com/lambda/) functions used in this solution may need to be enhanced to handle API retries and memory management in a production scale deployment.
 
 ## Security
-See [CONTRIBUTING](./CONTRIBUTING.md) for more information.
+See [SECURITY.md](./SECURITY.md) for the accepted security debt in this sample and the production recommendations that apply to each item. For responsible-disclosure of a vulnerability, see [CONTRIBUTING](./CONTRIBUTING.md).
 
 ## License
 This library is licensed under the MIT-0 License. See the [LICENSE](./LICENSE) file.

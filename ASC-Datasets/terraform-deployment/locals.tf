@@ -1,4 +1,4 @@
-# Software (software, scripts or sample code) is licensed under the Apache License, Version 2.0.
+# Software (software, scripts or sample code) is licensed under the MIT-0 License.
 # Author: AWS Professional Services
 
 locals {
@@ -98,16 +98,6 @@ locals {
       policy_name_prefix      = "${var.project_name}-${var.environment}-iam-policy-lambda-kms-${data.aws_region.current.name}"
       description             = "IAM policy to allow lambda function to perform KMS operations on ASC key"
       policy_statement        = data.aws_iam_policy_document.kms_policy_document_asc.json
-    }
-    chime_asc_access_config = {
-      policy_name_prefix      = "${var.project_name}-${var.environment}-iam-policy-lambda-chime-${data.aws_region.current.name}"
-      description             = "IAM policy to allow lambda function to perform chime operations"
-      policy_statement        = data.aws_iam_policy_document.chime_policy_document_asc.json
-    }
-    event_rule_asc_access_config = {
-      policy_name_prefix      = "${var.project_name}-${var.environment}-iam-policy-lambda-events-${data.aws_region.current.name}"
-      description             = "IAM policy to allow lambda function to perform event rule operations"
-      policy_statement        = data.aws_iam_policy_document.event_rule_policy_document_asc.json
     }
   }
 }

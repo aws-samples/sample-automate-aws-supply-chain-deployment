@@ -1,7 +1,6 @@
-# Software (software, scripts or sample code) is licensed under the Apache License, Version 2.0.
-# Author: AWS Professional Services
-
 #!/bin/bash
+# Software (software, scripts or sample code) is licensed under the MIT-0 License.
+# Author: AWS Professional Services
 
 # Change to the root directory of Terraform
 cd "$(dirname "$0")/../terraform-deployment" || exit
@@ -127,7 +126,12 @@ if [[ "$ASC_KMS_USED" == "true" ]]; then
     "kms:CreateGrant",
     "kms:RetireGrant"
   ],
-  "Resource": "*"
+  "Resource": "*",
+  "Condition": {
+    "StringEquals": {
+      "aws:SourceAccount": "$ACCOUNT_ID"
+    }
+  }
 }
 EOF
 )

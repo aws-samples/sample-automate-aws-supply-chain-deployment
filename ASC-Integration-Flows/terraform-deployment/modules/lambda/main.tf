@@ -1,4 +1,4 @@
-# Software (software, scripts or sample code) is licensed under the Apache License, Version 2.0.
+# Software (software, scripts or sample code) is licensed under the MIT-0 License.
 # Author: AWS Professional Services
 
 resource "aws_lambda_function" "this" {
@@ -29,6 +29,7 @@ resource "aws_lambda_function" "this" {
   kms_key_arn = length(var.env_var) > 0 ? var.kms_key_arn_lambda : null
 
   layers                             = var.layer_arns
+  reserved_concurrent_executions     = var.reserved_concurrent_executions
 
   s3_bucket                          = var.s3_bucket
   s3_key                             = var.s3_key_lambda
